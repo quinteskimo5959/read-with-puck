@@ -589,7 +589,7 @@ textarea{min-height:140px;resize:vertical}
 <script>
 (function(){
 const P = window.Phonics, LD = window.Ladder, U = P.UNITS;
-const APP_VERSION = '2026-11-22c';
+const APP_VERSION = '2026-11-22d';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DUCK = '<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="34" cy="42" rx="22" ry="15" fill="#FFD23F"/><circle cx="24" cy="24" r="13" fill="#FFD23F"/><path d="M6 25 L15 21 L15 29 Z" fill="#F2803B"/><circle cx="21" cy="21" r="2.4" fill="#2A2733"/><path d="M36 38 q10 -8 18 2" stroke="#E8B523" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
@@ -901,8 +901,8 @@ function parseStoryFile(name, raw){
   let i = 0; while(i < lines.length && !lines[i].trim()) i++;
   let title = (lines[i] || name).trim().replace(/^#+\s*/,'').replace(/^title:\s*/i,'');
   const body = lines.slice(i+1).join('\n').replace(/^\s*-{3,}\s*$/gm, '\n\n').trim();
-  let pages = body.split(/\n\s*\n/).map(p => p.replace(/\s*\n\s*/g,' ').trim()).filter(Boolean);
-  if(pages.length > 40 || pages.some(p => p.split(/\s+/).length > 70)) pages = paginate(body, 75);
+  let pages = body.split(/\n\s*\n/).map(p => p.split('\n').map(l => l.trim()).filter(Boolean).join('\n')).filter(Boolean);
+  if(pages.length > 40 || pages.some(p => p.split(/\s+/).length > 150)) pages = paginate(body, 75);
   if(!pages.length) pages = [title];
   return { id: 'g-' + name, name, title, pages };
 }
@@ -1300,7 +1300,7 @@ function wordHtml(text){
   return span;
 }
 function pageHtml(t){
-  return t.split(/\n\n/).map(par => '<p style="margin:0 0 .6em">' + P.tokenize(par).map(tk => tk.w ? wordHtml(tk.text) : esc(tk.text)).join('') + '</p>').join('');
+  return t.split(/\n\n/).map(par => '<p style="margin:0 0 .6em">' + P.tokenize(par).map(tk => tk.w ? wordHtml(tk.text) : esc(tk.text).replace(/\n/g,'<br>')).join('') + '</p>').join('');
 }
 function showReader(){
   stopSpeak();
