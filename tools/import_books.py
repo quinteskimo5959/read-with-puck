@@ -220,7 +220,7 @@ def do_mcguffey(book, body):
     for i in range(0, len(lessons), group):
         part = lessons[i:i + group]
         a, b = max(1, part[0][0]), part[-1][0]
-        names.append(write_story(f"{book['slug']}-{a:02d}.txt", f"{book['title']}, Lessons {a} to {b}", [p[1] for p in part]))
+        names.append(write_story(f"{book['slug']}-{a:02d}.txt", (f"{book['title']}, Lesson {a}" if a == b else f"{book['title']}, Lessons {a} to {b}"), [p[1] for p in part]))
     return names
 
 
