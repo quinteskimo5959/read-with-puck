@@ -177,6 +177,7 @@ def do_chapters(book, body):
         t = re.sub(r"^\s*IN WHICH\s*", "", re.sub(r"\s+", " ", " ".join(title_bits)), flags=re.I)
         t = title_case(t)
         t = t[:1].upper() + t[1:]
+        t = re.sub(r"\bls\b", "Is", t).replace("Organdized", "Organized")
         num = roman(re.search(r"CHAPTER\s+([IVXL]+)", lines[h]).group(1))
         pages = [tidy_para(p) for p in paras]
         pages = [p for p in pages if p and not re.match(r"^(THE HOUSE AT POOH CORNER|WINNIE-THE-POOH)$", p.strip())]
@@ -186,11 +187,17 @@ def do_chapters(book, body):
 
 def do_mcguffey(book, body):
     lines = body.split("\n")
-    heads = [i for i, l in enumerate(lines) if re.match(r"^\s*LESSON\s+[IVXL]+\b", l)]
+    heads = [i for i, l in enumerate(lines) if re.match(r"^\s*LESSON\s+([IVXL]+|\d+)\b", l, re.I)]
     lessons = []
+    alpha = [i for i, l in enumerate(lines) if "ALPHABET" in l and (not heads or i < heads[0])]
+    if alpha:
+        rows = [l.strip() for l in lines[alpha[0]:heads[0] if heads else len(lines)] if re.fullmatch(r"([A-Za-z]\s+)*[A-Za-z]", l.strip())]
+        if rows:
+            lessons.append((0, "The Alphabet\n" + "\n".join(rows)))
     for n, h in enumerate(heads):
         end = heads[n + 1] if n + 1 < len(heads) else len(lines)
-        num = roman(re.search(r"LESSON\s+([IVXL]+)", lines[h]).group(1))
+        tok = re.search(r"LESSON\s+([IVXL]+|\d+)", lines[h], re.I).group(1)
+        num = int(tok) if tok.isdigit() else roman(tok)
         kept = []
         for l in lines[h + 1:end]:
             s = l.strip()
@@ -212,7 +219,7 @@ def do_mcguffey(book, body):
     group = 4
     for i in range(0, len(lessons), group):
         part = lessons[i:i + group]
-        a, b = part[0][0], part[-1][0]
+        a, b = max(1, part[0][0]), part[-1][0]
         names.append(write_story(f"{book['slug']}-{a:02d}.txt", f"{book['title']}, Lessons {a} to {b}", [p[1] for p in part]))
     return names
 
@@ -222,6 +229,8 @@ def do_kittens(book, body):
     # stories start after the last "KITTENS AND CATS" half-title line
     idx = max((i for i, l in enumerate(lines) if l.strip().upper() == "KITTENS AND CATS"), default=0)
     lines = lines[idx + 1:]
+    stop = next((i for i, l in enumerate(lines) if re.search(r"WORD TO THE TEACHER|^\s*SUGGESTIONS\s*$", l, re.I)), len(lines))
+    lines = lines[:stop]
     tales, cur_title, cur = [], None, []
 
     def is_title(s):
