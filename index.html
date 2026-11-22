@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Read with Puck</title>
+<meta name="theme-color" content="#FFF7EA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Read with Puck">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF7EA; --card:#FFFFFF; --ink:#2A2733; --soft:#6E6878; --line:#EADFCB;
+  --vow:#E0483E; --con:#2F5DA8; --magic:#8A4FD6; --silent:#B9B0A2; --heart:#C2338A;
+  --hl:#FFE27A; --accent:#F2A93B; --good:#2E9B6A;
+  --scale:1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Andika',system-ui,sans-serif}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(76px + env(safe-area-inset-bottom)) env(safe-area-inset-left);min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+.top{display:flex;align-items:center;gap:10px;padding:12px 16px 6px}
+.top h1{font-size:22px;margin:0;flex:1;display:flex;align-items:center;gap:8px}
+.iconbtn{border:0;background:var(--card);border-radius:14px;width:44px;height:44px;font-size:20px;box-shadow:0 1px 0 var(--line)}
+.wrap{padding:6px 16px 24px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border-radius:20px;padding:16px;box-shadow:0 2px 0 var(--line);margin-bottom:14px}
+.hero{display:flex;gap:14px;align-items:center}
+.hero .big{font-size:56px;font-weight:700;color:var(--vow);min-width:90px;text-align:center;line-height:1}
+.btn{border:0;border-radius:16px;padding:14px 18px;font-size:18px;font-weight:700;background:var(--accent);color:#2A2733}
+.btn.alt{background:#EFE6D6}
+.btn.full{width:100%}
+.btn:disabled{opacity:.5}
+.muted{color:var(--soft);font-size:15px}
+.stage h2{font-size:17px;margin:18px 2px 8px;color:var(--soft);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:10px}
+.tile{background:var(--card);border:0;border-radius:18px;padding:10px 6px;text-align:center;box-shadow:0 2px 0 var(--line);position:relative;min-height:104px}
+.tile .num{font-size:12px;color:var(--soft)}
+.tile .snd{font-size:30px;font-weight:700;line-height:1.2}
+.tile .ttl{font-size:12px;line-height:1.2;color:var(--soft);margin-top:2px}
+.tile .star{position:absolute;top:6px;right:8px;font-size:16px}
+.tile.next{outline:3px solid var(--accent)}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);display:flex;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+.nav button{flex:1;border:0;background:none;padding:10px 0 12px;font-size:13px;color:var(--soft)}
+.nav button b{display:block;font-size:22px}
+.nav button.on{color:var(--ink);font-weight:700}
+.hidden{display:none!important}
+/* reader */
+.reader{position:fixed;inset:0;background:var(--bg);z-index:10;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.rbar{display:flex;align-items:center;gap:8px;padding:10px 12px}
+.rbar .t{flex:1;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page{flex:1;overflow:auto;padding:18px 22px;display:flex;align-items:center;justify-content:center}
+.text{font-size:calc(34px * var(--scale));line-height:1.9;max-width:680px;width:100%}
+.text.long{font-size:calc(24px * var(--scale));line-height:1.75;align-self:flex-start}
+.w{border-radius:8px;padding:0 1px;cursor:pointer}
+.w:active{background:#F3E7D1}
+.w .hl{background:var(--hl);border-radius:5px}
+.w sup{color:var(--heart);font-size:.45em}
+ruby rt{font-size:.42em;color:var(--soft);font-family:'Doulos SIL','Charis SIL','Gentium Plus','Lucida Sans Unicode',system-ui,sans-serif;letter-spacing:.02em}
+.rfoot{display:flex;gap:10px;padding:10px 14px 14px;align-items:center}
+.rfoot .btn{flex:1;font-size:20px;padding:16px}
+.dots{display:flex;gap:5px;justify-content:center;padding:0 0 6px;flex-wrap:wrap}
+.dots i{width:8px;height:8px;border-radius:50%;background:#E5D9C3}
+.dots i.on{background:var(--accent)}
+.pgnum{text-align:center;color:var(--soft);font-size:14px;padding-bottom:4px}
+.intro{text-align:center}
+.intro .snds{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.sndbtn{border:0;background:var(--card);border-radius:22px;padding:14px 22px;font-size:64px;font-weight:700;color:var(--vow);box-shadow:0 3px 0 var(--line);min-width:110px}
+.sndbtn small{display:block;font-size:15px;color:var(--soft);font-weight:400}
+.wordlist{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.wordlist button{border:0;background:var(--card);border-radius:12px;padding:8px 12px;font-size:24px;box-shadow:0 2px 0 var(--line)}
+/* zoom */
+.sheet-bg{position:fixed;inset:0;background:rgba(40,34,28,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:760px;border-radius:26px 26px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:18px 0 8px}
+.chip{border:0;background:var(--card);border-radius:18px;padding:8px 8px 10px;min-width:calc(var(--cs,64px) * .9);box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;align-items:center;position:relative}
+.chip .l{font-size:var(--cs,64px);font-weight:700;line-height:1.1}
+.chip .grp{height:6px;border-radius:3px;width:80%;margin-top:2px;background:currentColor;opacity:.55}
+.chip .ip{font-size:18px;color:var(--soft);margin-top:4px;font-family:'Doulos SIL','Charis SIL','Gentium Plus',system-ui,sans-serif}
+.chip .tag{font-size:12px;color:var(--soft)}
+.chip.v{color:var(--vow)} .chip.c{color:var(--con)} .chip.m{color:var(--magic)} .chip.s{color:var(--silent)} .chip.tr{color:var(--heart)}
+.chip.lit{transform:translateY(-6px);box-shadow:0 8px 0 var(--accent)}
+.chip .hrt{position:absolute;top:2px;right:6px;font-size:14px}
+.zipa{text-align:center;font-size:22px;color:var(--soft);font-family:'Doulos SIL','Charis SIL','Gentium Plus',system-ui,sans-serif}
+.zrow{display:flex;gap:10px;margin-top:14px}
+.zrow .btn{flex:1}
+.note{background:#FBEAF3;color:#7A1F55;border-radius:14px;padding:10px 12px;font-size:15px;margin-top:10px}
+.note.info{background:#EEF3FB;color:#26457A}
+.linkbtn{background:none;border:0;color:var(--con);font-size:15px;text-decoration:underline;padding:8px;display:block;margin:6px auto 0}
+/* sounds */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:9px}
+.sgrid button{border:0;background:var(--card);border-radius:16px;padding:10px 4px;box-shadow:0 2px 0 var(--line);text-align:center}
+.sgrid button .l{font-size:30px;font-weight:700}
+.sgrid button .e{font-size:13px;color:var(--soft)}
+.sgrid button .ip{font-size:14px;color:var(--soft)}
+.sgrid button.lock{opacity:.38}
+.sgrid button.v .l{color:var(--vow)} .sgrid button.c .l{color:var(--con)} .sgrid button.m .l{color:var(--magic)}
+/* forms */
+label.f{display:block;font-weight:700;margin:12px 0 6px}
+input[type=text],textarea,select{width:100%;font-family:inherit;font-size:17px;padding:12px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--ink)}
+textarea{min-height:140px;resize:vertical}
+.ideas{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ideas button{border:0;background:#EFE6D6;border-radius:999px;padding:7px 12px;font-size:14px}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px;font-size:16px}
+.seg button.on{border-color:var(--accent);background:#FFF1D6;font-weight:700}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .lab{flex:1}
+.row .lab small{display:block;color:var(--soft);font-size:13px}
+.sw{position:relative;width:54px;height:32px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:#DDD3C2;border-radius:99px;transition:.2s}
+.sw span:before{content:'';position:absolute;width:26px;height:26px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+span{background:var(--good)}
+.sw input:checked+span:before{transform:translateX(22px)}
+.item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .grow{flex:1;min-width:0}
+.item .grow b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.small{font-size:14px;padding:9px 12px;border-radius:12px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#2A2733;color:#fff;padding:10px 16px;border-radius:14px;font-size:15px;z-index:40;max-width:90vw;text-align:center}
+.celebrate{position:fixed;inset:0;z-index:30;background:rgba(255,247,234,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+.celebrate .bigstar{font-size:110px;animation:pop .7s ease-out}
+@keyframes pop{0%{transform:scale(.2) rotate(-40deg)}70%{transform:scale(1.2) rotate(8deg)}100%{transform:scale(1)}}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid #E5D9C3;border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.badge{display:inline-block;font-size:12px;background:#EFE6D6;color:var(--ink);border-radius:999px;padding:2px 8px;margin-left:4px;font-weight:700;vertical-align:middle}
+.badge.ok{background:#DDF2E6;color:#1F6B47}
+.meter{position:relative;height:14px;background:#EFE6D6;border-radius:99px;overflow:hidden;margin-top:6px}
+.meter i{position:absolute;left:0;top:0;bottom:0;background:var(--good);border-radius:99px}
+.meter s{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);opacity:.5}
+.sndmini{font-size:26px;font-weight:700;color:var(--vow);min-width:56px;text-align:center}
+.pill{background:#FBEAF3;color:#7A1F55;border-radius:999px;padding:6px 12px;font-size:18px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--soft);justify-content:center;margin-top:8px}
+.legend span b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1><span id="duck"></span><span>Read with Puck</span></h1>
+  <button class="iconbtn" id="gear" aria-label="Settings">⚙️</button>
+</div>
+
+<main class="wrap">
+  <section id="v-stories"></section>
+  <section id="v-sounds" class="hidden"></section>
+  <section id="v-library" class="hidden"></section>
+  <section id="v-make" class="hidden"></section>
+  <section id="v-settings" class="hidden"></section>
+</main>
+
+<nav class="nav">
+  <button data-v="stories" class="on"><b>📖</b>Stories</button>
+  <button data-v="sounds"><b>🔤</b>Sounds</button>
+  <button data-v="library"><b>📚</b>Library</button>
+  <button data-v="make" id="navMake" class="hidden"><b>✨</b>Make</button>
+</nav>
+
+<div id="reader" class="reader hidden"></div>
+<div id="sheet" class="sheet-bg hidden"></div>
+<div id="overlay" class="hidden"></div>
+
+<script>// Phonics engine: splits words into sound chunks (graphemes) with IPA.
+(function (G) {
+  const VOW = 'aeiou';
+  const isV = c => !!c && VOW.includes(c);
+
+  // unit id -> {label, ipa, kind, ex}
+  const UNITS = {
+    s:{ipa:'s',ex:'sun'}, a:{ipa:'æ',ex:'apple',v:1}, t:{ipa:'t',ex:'top'}, p:{ipa:'p',ex:'pig'},
+    i:{ipa:'ɪ',ex:'in',v:1}, n:{ipa:'n',ex:'net'}, m:{ipa:'m',ex:'mop'}, d:{ipa:'d',ex:'dog'},
+    g:{ipa:'g',ex:'goat'}, o:{ipa:'ɑ',ex:'hot',v:1}, c:{ipa:'k',ex:'cat'}, k:{ipa:'k',ex:'kit'},
+    ck:{ipa:'k',ex:'duck'}, e:{ipa:'ɛ',ex:'egg',v:1}, u:{ipa:'ʌ',ex:'up',v:1}, r:{ipa:'r',ex:'red'},
+    h:{ipa:'h',ex:'hat'}, b:{ipa:'b',ex:'bat'}, f:{ipa:'f',ex:'fish'}, l:{ipa:'l',ex:'leg'},
+    j:{ipa:'dʒ',ex:'jam'}, v:{ipa:'v',ex:'van'}, w:{ipa:'w',ex:'web'}, x:{ipa:'ks',ex:'box'},
+    y:{ipa:'j',ex:'yes'}, z:{ipa:'z',ex:'zip'}, qu:{ipa:'kw',ex:'quack'},
+    ch:{ipa:'tʃ',ex:'chip'}, tch:{ipa:'tʃ',ex:'catch'}, sh:{ipa:'ʃ',ex:'ship'}, th:{ipa:'θ',ex:'thin'},
+    wh:{ipa:'w',ex:'when'}, ng:{ipa:'ŋ',ex:'ring'}, ed:{ipa:'d',ex:'filled'},
+    ai:{ipa:'eɪ',ex:'rain',v:1}, ee:{ipa:'i',ex:'bee',v:1}, igh:{ipa:'aɪ',ex:'night',v:1},
+    oa:{ipa:'oʊ',ex:'boat',v:1}, oo:{ipa:'u',ex:'moon',v:1}, oo_short:{label:'oo',ipa:'ʊ',ex:'book',v:1},
+    ar:{ipa:'ɑr',ex:'car',v:1}, or:{ipa:'ɔr',ex:'fork',v:1}, ur:{ipa:'ɝ',ex:'fur',v:1},
+    ow:{ipa:'aʊ',ex:'cow',v:1}, oi:{ipa:'ɔɪ',ex:'coin',v:1}, er:{ipa:'ɝ',ex:'her',v:1},
+    le:{ipa:'əl',ex:'little',v:1},
+    a_e:{ipa:'eɪ',ex:'cake',v:1}, e_e:{ipa:'i',ex:'these',v:1}, i_e:{ipa:'aɪ',ex:'bike',v:1},
+    o_e:{ipa:'oʊ',ex:'home',v:1}, u_e:{ipa:'ju',ex:'cube',v:1}, e_silent:{label:'e',ipa:'',ex:'have'},
+    ay:{ipa:'eɪ',ex:'day',v:1}, ea:{ipa:'i',ex:'leaf',v:1}, ou:{ipa:'aʊ',ex:'out',v:1},
+    oy:{ipa:'ɔɪ',ex:'boy',v:1}, ir:{ipa:'ɝ',ex:'bird',v:1}, ew:{ipa:'u',ex:'new',v:1},
+    ue:{ipa:'u',ex:'blue',v:1}, aw:{ipa:'ɔ',ex:'saw',v:1}, au:{ipa:'ɔ',ex:'haul',v:1},
+    y_ee:{label:'y',ipa:'i',ex:'happy',v:1}, y_igh:{label:'y',ipa:'aɪ',ex:'fly',v:1},
+    ie:{ipa:'aɪ',ex:'pie',v:1}, ey:{ipa:'i',ex:'key',v:1}, ea_short:{label:'ea',ipa:'ɛ',ex:'bread',v:1},
+    ow_long:{label:'ow',ipa:'oʊ',ex:'snow',v:1}, c_soft:{label:'c',ipa:'s',ex:'city'},
+    g_soft:{label:'g',ipa:'dʒ',ex:'gem'}, dge:{ipa:'dʒ',ex:'badge'}, ph:{ipa:'f',ex:'phone'},
+    kn:{ipa:'n',ex:'knot'}, wr:{ipa:'r',ex:'wrap'}, tion:{ipa:'ʃən',ex:'nation'}
+  };
+  for (const k in UNITS) if (!UNITS[k].label) UNITS[k].label = k;
+
+  // What the voice says for each sound (approximations a speech engine handles)
+  const SAY = {
+    'æ':'aah','ɛ':'eh','ɪ':'ih','ɑ':'ah','ʌ':'uh','ə':'uh','ʊ':'uu','eɪ':'ay','i':'ee','aɪ':'eye',
+    'oʊ':'oh','u':'ooo','ju':'you','aʊ':'ow','ɔɪ':'oy','ɔ':'aw','ɑr':'are','ɔr':'or','ɝ':'er','ɚ':'er',
+    'ɪr':'ear','ɛr':'air','əl':'ull','ʃən':'shun','ɪd':'id','wʌ':'wuh',
+    b:'buh',d:'duh',f:'fff',g:'guh',h:'huh','dʒ':'juh',k:'kuh',l:'lll',m:'mmm',n:'nnn',p:'puh',
+    kw:'kwuh',r:'rrr',s:'sss',t:'tuh',v:'vvv',w:'wuh',ks:'ks',j:'yuh',z:'zzz','ʃ':'shh','tʃ':'chuh',
+    'θ':'thh','ð':'thuh','ŋ':'nng'
+  };
+  // example words for a unit when it makes a non-default sound
+  const EX2 = { 's|z':'is', 'n|ŋ':'pink', 'a|ə':'a', 'a|ɔ':'ball', 'o|oʊ':'go', 'i|aɪ':'find',
+    'e|i':'he', 'th|ð':'this', 'ed|t':'jumped', 'ed|ɪd':'landed', 'y_ee|ɪ':'gym', 'a_e|ɛ':'care',
+    'o_e|ɔ':'more', 'u_e|u':'flute', 'e_e|ɪ':'here', 'ea|eɪ':'great', 'ea_short|ɛ':'bread', 'u|ʊ':'put' };
+
+  // Tricky/heart words: letters:ipa, "!" marks the tricky part, ":0" means silent
+  const EXC_SRC = {
+    the:'th:ð|e:ə!', to:'t|o:u!', i:'I:aɪ', was:'w|a:ʌ!|s:z', you:'y:j|ou:u!', they:'th:ð|ey:eɪ!',
+    my:'m|y:aɪ', by:'b|y:aɪ', said:'s|ai:ɛ!|d', says:'s|ay:ɛ!|s:z', are:'ar|e:0', of:'o:ʌ!|f:v!',
+    do:'d|o:u!', into:'i|n|t|o:u!', onto:'o|n|t|o:u!', have:'h|a|v|e:0', give:'g|i|v|e:0', live:'l|i|v|e:0',
+    love:'l|o:ʌ!|v|e:0', move:'m|o:u!|v|e:0', some:'s|o:ʌ!|m|e:0', come:'c:k|o:ʌ!|m|e:0',
+    done:'d|o:ʌ!|n|e:0', gone:'g|o:ɔ!|n|e:0', one:'o:wʌ!|n|e:0', once:'o:wʌ!|n|c:s|e:0',
+    what:'wh:w|a:ʌ!|t', there:'th:ð|ere:ɛr!', where:'wh:w|ere:ɛr!', were:'w|ere:ɝ!', here:'h|ere:ɪr!',
+    your:'y:j|our:ɔr!', four:'f|our:ɔr!', want:'w|a:ɑ!|n|t', water:'w|a:ɑ!|t|er:ɚ',
+    could:'c:k|oul:ʊ!|d', would:'w|oul:ʊ!|d', should:'sh|oul:ʊ!|d', oh:'oh:oʊ!', she:'sh|e:i',
+    put:'p|u:ʊ!|t', push:'p|u:ʊ!|sh', pull:'p|u:ʊ!|ll:l', full:'f|u:ʊ!|ll:l', bull:'b|u:ʊ!|ll:l',
+    does:'d|oe:ʌ!|s:z', goes:'g|oe:oʊ!|s:z', two:'t|wo:u!', who:'wh:h!|o:u!', friend:'f|r|ie:ɛ!|n|d',
+    school:'s|ch:k!|oo|l', eye:'eye:aɪ!', again:'a:ə|g|ai:ɛ!|n', any:'a:ɛ!|n|y:i', many:'m|a:ɛ!|n|y:i',
+    mother:'m|o:ʌ!|th:ð|er:ɚ', brother:'b|r|o:ʌ!|th:ð|er:ɚ', other:'o:ʌ!|th:ð|er:ɚ',
+    father:'f|a:ɑ!|th:ð|er:ɚ', walk:'w|a:ɔ!|l:0|k', talk:'t|a:ɔ!|l:0|k', from:'f|r|o:ʌ!|m',
+    wind:'w|i|n|d', soup:'s|ou:u!|p', group:'g|r|ou:u!|p', touch:'t|ou:ʌ!|ch', young:'y:j|ou:ʌ!|ng',
+    been:'b|ee:ɪ!|n', door:'d|oo:ɔ!|r', floor:'f|l|oo:ɔ!|r', laugh:'l|au:æ!|gh:f!', know:'kn|ow:oʊ',
+    word:'w|or:ɝ!|d', work:'w|or:ɝ!|k', world:'w|or:ɝ!|l|d', learn:'l|ear:ɝ!|n', earth:'ear:ɝ!|th',
+    people:'p|eo:i!|p|le', because:'b|e:ɪ|c:k|au:ʌ!|s:z|e:0', mr:'Mr:mɪstɚ!', mrs:'Mrs:mɪsɪz!',
+    great:'g|r|ea:eɪ!|t', break:'b|r|ea:eɪ!|k', bear:'b|ea:ɛ!|r', pear:'p|ea:ɛ!|r', wear:'w|ea:ɛ!|r',
+    lion:'l|i:aɪ|o:ə|n', idea:'i:aɪ|d|e:i|a:ə', thought:'th|ough:ɔ!|t', through:'th|r|ough:u!',
+    though:'th:ð|ough:oʊ!', enough:'e:ɪ|n|ou:ʌ!|gh:f!', above:'a:ə|b|o:ʌ!|v|e:0', about:'a:ə|b|ou|t',
+    away:'a:ə|w|ay', ago:'a:ə|g|o:oʊ', today:'t|o:ə|d|ay', hello:'h|e|ll:l|o:oʊ', also:'a:ɔ|l|s|o:oʊ',
+    very:'v|e|r|y:i', every:'e|v|er:ɚ|y:i', only:'o:oʊ|n|l|y:i', ok:'O:oʊ|K:keɪ'
+  };
+  const VOICED_TH = new Set('the this that them then they there their these those with than thus though mother father brother other others together weather feather either neither smooth breathe bathe'.split(' '));
+  const SHORT_OO = ['book','look','cook','took','hook','good','hood','wood','foot','stood','shook','brook','crook','wool','nook','soot','woof'];
+  const LONG_OW = ['snow','show','grow','slow','low','blow','glow','know','own','bowl','throw','row','mow','tow','flow','yellow','window','pillow','follow','shadow','arrow','elbow','rainbow','below','crow','bow','sow','fellow','meadow','narrow','sparrow','swallow','hollow','tomorrow','borrow','grown','shown','blown','thrown','flown'];
+  const SHORT_EA = ['head','bread','dead','ready','heavy','breakfast','weather','feather','instead','sweater','spread','thread','breath','health','wealth','meant','deaf','heaven','leather','pleasant','steady','measure','treasure','dread','tread','ahead','meadow','sweat'];
+  const S_SOFT = new Set('bus yes gas this us plus thus bonus circus octopus focus'.split(' '));
+  const sufForms = r => [r, r+'s', r+'ed', r+'ing', r+'er', r+'y', r+'ie', r+'ies'];
+  const inRoots = (w, roots) => roots.some(r => sufForms(r).includes(w));
+
+  function parseExc(src) {
+    return src.split('|').map(part => {
+      let [t, ipa] = part.split(':');
+      let tricky = false, silent = false;
+      if (ipa === undefined) ipa = (UNITS[t.toLowerCase()] || {}).ipa || t;
+      if (ipa.endsWith('!')) { tricky = true; ipa = ipa.slice(0, -1); }
+      if (ipa === '0') { silent = true; ipa = ''; }
+      const lt = t.toLowerCase();
+      let u = tricky ? null : (silent ? 'e_silent' : (UNITS[lt] ? lt : (lt.length === 2 && lt[0] === lt[1] && UNITS[lt[0]] ? lt[0] : null)));
+      if (lt === 'y' && ipa === 'aɪ') u = 'y_igh';
+      if (lt === 'y' && ipa === 'i') u = 'y_ee';
+      if (lt === 'l' && silent) u = null;
+      return { t, u, ipa, tricky, silent };
+    });
+  }
+  const EXC = {};
+  for (const k in EXC_SRC) EXC[k] = parseExc(EXC_SRC[k]);
+
+  const LONG = { a:'eɪ', e:'i', i:'aɪ', o:'oʊ' };
+  const LONG_R = { a:'ɛ', e:'ɪ', i:'aɪ', o:'ɔ', u:'ʊ' };
+
+  function findMagic(w) {
+    for (const suf of ['', 's', 'd']) {
+      if (!w.endsWith('e' + suf)) continue;
+      const ei = w.length - 1 - suf.length;
+      const core = w.slice(0, ei);
+      let cons = null;
+      if (core.endsWith('th')) cons = 'th';
+      else if (/[bcdfgklmnprstvz]$/.test(core)) cons = core.slice(-1);
+      if (!cons) continue;
+      const vi = ei - cons.length - 1;
+      if (vi < 0) continue;
+      const v = w[vi];
+      if (!isV(v)) continue;
+      const prev = w[vi - 1];
+      if (prev && 'aeiouy'.includes(prev) && !(prev === 'u' && w[vi - 2] === 'q')) continue;
+      return { vi, ei, v, cons, ci: vi + 1 };
+    }
+    return null;
+  }
+
+  const PATS = ['tion','tch','dge','igh','sh','ch','th','ng','ck','wh','ph','qu','kn','wr','ee','ea','ai','ay','oa','oo','ou','ow','oi','oy','ey','ar','or','er','ir','ur','ue','ew','aw','au','ie','le','ed'];
+  const RCTRL = new Set(['ar','or','er','ir','ur']);
+
+  function patOk(p, w, i) {
+    const n = w.length;
+    if (p === 'kn' || p === 'wr') return i === 0;
+    if (p === 'ie' || p === 'ue') return i + 2 === n || (i + 3 === n && 'sd'.includes(w[n - 1]));
+    if (p === 'le') return i + 2 === n && i > 0 && !isV(w[i - 1]);
+    if (p === 'ed') return i + 2 === n && i >= 3 && !isV(w[i - 1]);
+    if (p === 'ey') return i + 2 === n || (i + 3 === n && w[n - 1] === 's');
+    if (RCTRL.has(p)) { const nx = w[i + 2]; return !nx || !'aeiouyr'.includes(nx); }
+    return true;
+  }
+
+  function patChip(p, w, i) {
+    const n = w.length;
+    let u = p, ipa = UNITS[p].ipa;
+    if (p === 'th' && VOICED_TH.has(w)) ipa = 'ð';
+    if (p === 'oo' && inRoots(w, SHORT_OO)) { u = 'oo_short'; ipa = 'ʊ'; }
+    if (p === 'ow' && inRoots(w, LONG_OW)) { u = 'ow_long'; ipa = 'oʊ'; }
+    if (p === 'ea' && inRoots(w, SHORT_EA)) { u = 'ea_short'; ipa = 'ɛ'; }
+    if (p === 'ed') {
+      const pr = w[i - 1];
+      ipa = 'td'.includes(pr) ? 'ɪd' : ('pkfsxhc'.includes(pr) ? 't' : 'd');
+    }
+    if (p === 'er' && i + 2 === n && n > 3) ipa = 'ɚ';
+    return { u, ipa };
+  }
+
+  function singleChip(w, i) {
+    const c = w[i], n = w.length, nx = w[i + 1];
+    let u = c, ipa = UNITS[c] ? UNITS[c].ipa : c;
+    switch (c) {
+      case 'c': if (nx && 'eiy'.includes(nx)) { u = 'c_soft'; ipa = 's'; } break;
+      case 'g': if (w.slice(i) === 'ge') { u = 'g_soft'; ipa = 'dʒ'; } break;
+      case 'n': if (nx === 'k') ipa = 'ŋ'; break;
+      case 'a':
+        if (w === 'a') ipa = 'ə';
+        else if (w.slice(i + 1, i + 3) === 'll' && (i + 3 === n || w.slice(i + 3) === 's')) ipa = 'ɔ';
+        break;
+      case 'o':
+        if (['go','no','so','yo','ho'].includes(w)) ipa = 'oʊ';
+        else if (w.slice(i + 1, i + 3) === 'ld') ipa = 'oʊ';
+        break;
+      case 'i': {
+        const rest = w.slice(i + 1);
+        if (w === 'i') ipa = 'aɪ';
+        else if (/^(nd|ld)(s|er|ers)?$/.test(rest)) ipa = 'aɪ';
+        break;
+      }
+      case 'e':
+        if (i === n - 1) {
+          if (n <= 2 || w === 'she') ipa = 'i';
+          else { u = 'e_silent'; ipa = ''; }
+        }
+        break;
+      case 'y':
+        if (i === 0 || isV(nx)) { u = 'y'; ipa = 'j'; }
+        else if (i === n - 1 || (i === n - 2 && w[n - 1] === 's')) {
+          const before = w.slice(0, i);
+          if (!/[aeiou]/.test(before)) { u = 'y_igh'; ipa = 'aɪ'; } else { u = 'y_ee'; ipa = 'i'; }
+        } else { u = 'y_ee'; ipa = 'ɪ'; }
+        break;
+    }
+    return { u, ipa };
+  }
+
+  function parseLower(w) {
+    if (EXC[w]) return EXC[w].map(ch => Object.assign({}, ch));
+    const chips = [];
+    const n = w.length;
+    const mg = findMagic(w);
+    let i = 0;
+    while (i < n) {
+      if (mg && i === mg.vi) {
+        const r = w[mg.ci] === 'r' && mg.cons === 'r';
+        let ipa = r ? LONG_R[mg.v] : (LONG[mg.v] || '');
+        if (mg.v === 'u' && !r) ipa = (i > 0 && 'rljtds'.includes(w[i - 1])) ? 'u' : 'ju';
+        chips.push({ t: w[i], u: mg.v + '_e', ipa, magic: true });
+        i++; continue;
+      }
+      if (mg && i === mg.ei) { chips.push({ t: 'e', u: mg.v + '_e', ipa: '', silent: true, magic: true }); i++; continue; }
+      if (mg && i === mg.ci) {
+        let u = mg.cons, ipa = UNITS[mg.cons].ipa;
+        if (mg.cons === 'c') { u = 'c_soft'; ipa = 's'; }
+        if (mg.cons === 'g') { u = 'g_soft'; ipa = 'dʒ'; }
+        if (mg.cons === 's' && 'iou'.includes(mg.v)) ipa = 'z';
+        chips.push({ t: mg.cons, u, ipa }); i += mg.cons.length; continue;
+      }
+      let done = false;
+      for (const p of PATS) {
+        if (w.startsWith(p, i) && patOk(p, w, i)) {
+          if (mg && ((i < mg.vi && i + p.length > mg.vi) || (i < mg.ei && i + p.length > mg.ei) || (i < mg.ci && i + p.length > mg.ci))) continue;
+          const pc = patChip(p, w, i);
+          chips.push({ t: p, u: pc.u, ipa: pc.ipa });
+          i += p.length; done = true; break;
+        }
+      }
+      if (done) continue;
+      const c = w[i];
+      if (!isV(c) && c === w[i + 1] && c !== 'c' && !(mg && (i + 1 === mg.vi || i + 1 === mg.ci)) && UNITS[c]) {
+        chips.push({ t: c + c, u: c, ipa: UNITS[c].ipa });
+        i += 2; continue;
+      }
+      if (isV(c) && c === 'e' && false) {}
+      if (mg && c === 'd' && i === n - 1 && mg.ei === n - 2) { chips.push({ t: 'd', u: 'ed', ipa: 'pkfsx'.includes(mg.cons) || mg.cons === 'th' ? 't' : 'd' }); i++; continue; }
+      if (!/[a-z]/.test(c)) { chips.push({ t: c, u: null, ipa: '', punct: true }); i++; continue; }
+      const sc = singleChip(w, i);
+      chips.push({ t: c, u: sc.u, ipa: sc.ipa });
+      i++;
+    }
+    // final -s voicing
+    const last = chips[chips.length - 1];
+    if (last && last.t === 's' && last.u === 's' && chips.length > 1 && !S_SOFT.has(w)) {
+      const pv = chips[chips.length - 2].ipa;
+      const end = pv.slice(-1);
+      if (pv && 'æɛɪɑʌəʊiuɔɝɚrbdglmnŋvwðzʒ'.includes(end) || pv.endsWith('dʒ') || pv.endsWith('eɪ') || pv.endsWith('aɪ') || pv.endsWith('oʊ') || pv.endsWith('aʊ') || pv.endsWith('ɔɪ')) last.ipa = 'z';
+    }
+    return chips;
+  }
+
+  const cache = new Map();
+  // Parse a word as written (keeps original casing; apostrophes attach to the previous chip)
+  function parseWord(word) {
+    if (cache.has(word)) return cache.get(word);
+    const letters = word.replace(/[’']/g, '');
+    const lw = letters.toLowerCase();
+    let chips = parseLower(lw);
+    // restore original casing / apostrophes
+    let pos = 0; const out = [];
+    const orig = word;
+    let oi = 0;
+    for (const ch of chips) {
+      let t = '';
+      let need = ch.t.length;
+      while (need > 0 && oi < orig.length) {
+        const c = orig[oi];
+        if (c === "'" || c === '’') { if (out.length) out[out.length - 1].t += c; else t += c; oi++; continue; }
+        t += c; oi++; need--;
+      }
+      out.push(Object.assign({}, ch, { t }));
+      pos++;
+    }
+    while (oi < orig.length) { if (out.length) out[out.length - 1].t += orig[oi]; oi++; }
+    const res = { word, lw, chips: out, heart: !!EXC[lw] && EXC[lw].some(c => c.tricky) };
+    cache.set(word, res);
+    return res;
+  }
+
+  function wordIpa(p) { return '/' + p.chips.map(c => c.ipa).join('') + '/'; }
+
+  // Is a word readable with the given known units and tricky words?
+  function checkWord(word, known, tricky) {
+    const p = parseWord(word);
+    const lw = p.lw;
+    if (tricky.has(lw) || (lw.endsWith('s') && tricky.has(lw.slice(0, -1)))) return { ok: true, heart: true };
+    if (EXC[lw] && p.heart) return { ok: false, why: 'tricky word not taught yet' };
+    const missing = p.chips.filter(c => !c.punct && (!c.u || !known.has(c.u))).map(c => c.u || c.t);
+    return { ok: missing.length === 0, missing };
+  }
+
+  function tokenize(text) {
+    // returns array of {w:true,text} or {w:false,text}
+    const out = [];
+    const re = /([A-Za-z]+(?:[’'][A-Za-z]+)*)|([^A-Za-z]+)/g;
+    let m;
+    while ((m = re.exec(text))) out.push(m[1] ? { w: true, text: m[1] } : { w: false, text: m[2] });
+    return out;
+  }
+
+  G.Phonics = { UNITS, SAY, EX2, parseWord, wordIpa, checkWord, tokenize, EXC };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>(function (G) {
+  // Each level adds a new sound. pages: array of page strings.
+  const L = [
+    { n:['s','a','t','p'], title:'Pat Sat', stage:1, tricky:[], pages:[
+      'Pat sat.', 'Tap! Tap! Tap!', 'Pat taps a tap.', 'Pat sat at a tap. Tap, tap, tap!' ]},
+    { n:['i'], title:'Pip Is It!', stage:1, tricky:[], pages:[
+      'Pip sits.', 'Pip sips. Sip, sip, sip!', 'Pat sits at Pip.', 'Pat taps Pip. Tap, tap!', 'Pip tips. Pip is it!' ]},
+    { n:['n'], title:'The Ant', stage:1, tricky:['the'], pages:[
+      'An ant sits in a pit.', 'The ant naps in the pit.', 'Pip spins. Spin, spin, spin!', 'Pip tips in the pit!', 'Nip! The ant nips Pip.', 'Pip spins in a snap! Pip is in a tin pan.' ]},
+    { n:['m'], title:'I Am Sam', stage:1, tricky:['I'], pages:[
+      'I am Sam. I am a man.', 'I sit. I nap. I sit. I nap.', 'Tap, tap! It is Pam.', 'Pam taps a map. "Sam! A map!"', 'I spin the map. I am in it! Pam is in it! Pip is in it!', 'It is a mini map. Snap!' ]},
+    { n:['d'], title:'The Sand Man', stage:1, tricky:['to'], pages:[
+      'Dad and Sam sit in the sand.', 'Dad dips. Dip, dip, dip!', 'Sam pats the sand. Pat, pat, pat!', 'Sam and Dad tap and pat. It is a sand man!', 'Pip spins in. Pip tips the sand man!', 'Sam is sad. Dad is sad.', 'Pip sits and pants. Pip did it!', 'Dad tips Pip in to dip. Dip, dip!' ]},
+    { n:['g'], title:'Dig, Pip, Dig!', stage:1, tricky:[], pages:[
+      'Pip digs. Dig, dig, dig!', 'Pip digs a pit in the sand.', 'Sam and Dad stand at the gap.', 'A pig? It is a pig in the pit!', 'The pig digs and Pip digs.', 'Tag! Pip tags the pig. The pig tags Pip!' ]},
+    { n:['o'], title:'Oh No, Pip!', stage:1, tricky:['oh'], pages:[
+      'Pip is a dog. Pip is not a pig!', 'Pip got on a pot. Pip sits on top.', 'Oh no! The pot tips!', 'Pip is in the pond. Dip, dip!', 'Go, Pip, go! Pip stands on a spot of sand.', 'Pip is not mad. Pip is a pond dog!' ], tricky2:['of']},
+    { n:['c'], title:'Cam the Cat', stage:1, tricky:[], pages:[
+      'Cam is a cat.', 'Cam can nap on a cot.', 'Pip, the dog, digs and digs.', 'Cam can not nap! Cam is mad.', 'Cam pads on to Pip. Pat, pat!', 'Scat, Pip! Scat!', 'Pip sits. Cam naps on Pip!' ]},
+    { n:['k'], title:'Kim Can Skip', stage:1, tricky:[], pages:[
+      'Kim is a kid. Kim can skip.', 'Skip, skip, skip! Kim skips to the pond.', 'Kim skids on the sand. Skid!', 'Kim sits in the sand. Kim is not sad.', 'Kim can dig. Pip can dig. Cam can not dig!', 'Cam naps on Kim\'s kit.' ]},
+    { n:['ck'], title:'The Sock', stage:2, tricky:[], pages:[
+      'Kim picks a sock.', 'Pip snacks on the sock! Snack, snack!', '"Stop, Pip!" Kim picks a stick.', 'Kim tips the stick. Pip spots the stick.', 'Pip picks the stick! Kim picks the sock.', 'The sock is in Kim\'s sack. Pip is not sad. Pip snacks on the stick!' ]},
+    { n:['e'], title:'Meg\'s Pet', stage:2, tricky:['she'], pages:[
+      'Meg is ten.', 'Meg gets a pet in a tent!', 'Is it a cat? Is it a dog? No!', 'It is an egg. An egg in a nest.', 'She sets the nest on a desk.', 'Tap, tap. Peck, peck. The egg can tick and tock!', 'Pop! It is a ...' ]},
+    { n:['u'], title:'Puck the Duck', stage:2, tricky:[], pages:[
+      'It is a duck!', 'Meg\'s duck is up on the desk.', 'The duck is a mud duck. Mud, mud, mud!', 'Meg gets a pan. Dunk the duck in the pan!', 'The duck is not in the pan. It is in a cup!', 'Meg pets the duck. It is a pet duck!', 'It is Puck the duck!' ]},
+    { n:['r'], title:'Run, Puck, Run!', stage:2, tricky:[], pages:[
+      'Puck can run. Run, Puck, run!', 'Puck runs on the rug.', 'Puck runs on a red rock.', 'A rat runs up to Puck!', 'Puck and the rat run and run.', 'Trip! Puck trips on a rock and rests.', 'The rat rests on Puck. Grin!' ]},
+    { n:['h'], title:'The Red Hat', stage:2, tricky:['of','he'], pages:[
+      'Meg has a hat. It is a red hat.', 'Puck hops in the hat. Hop, hop!', 'The hat is hot in the sun.', 'Puck hums in the hat. Hum, hum, hum.', 'A hen pecks the hat. Peck, peck!', 'Puck hops up on top of the hen!', 'Meg hugs Puck. Meg hugs the hen. Hug, hug, hug!' ]},
+    { n:['b'], title:'The Bus Trip', stage:2, tricky:[], pages:[
+      'Puck gets on a bus.', 'Bump, bump! The bus is big and red.', 'Puck sits in Meg\'s bag.', 'A bug gets on the bus. The bug sits on Puck\'s bun!', 'Puck pecks at the bug. Bad bug!', 'The bug hops up. The bug hops on Meg!', 'Meg grins. It is the best bus trip!' ]},
+    { n:['f'], title:'Puff, Puff, Puff!', stage:2, tricky:[], pages:[
+      'It is a hot, hot sun.', 'Puck is fed up.', 'Meg gets a fan. Puff, puff, puff!', 'The fan is fast. Puck huffs and puffs.', 'Puck is off! Puck is up, up, up!', 'Puck is stuck on top of a big fig! Sniff, sniff.', 'Meg gets Puck off. It is fun to fan!' ]},
+    { n:['l'], title:'The Slug on the Log', stage:2, tricky:['was','into','all'], pages:[
+      'Puck was on a hill.', 'Puck sat on a log. The log was flat.', 'A big black slug slid up the log!', 'Puck can not let the slug on his log.', 'Puck flaps his legs. Flap, flap!', 'Flip! Puck fell off the log!', 'Puck fell into the pond.', 'The slug has the log. Puck has the pond. Ha!' ]},
+    { n:['j'], title:'Jam!', stage:2, tricky:['do'], pages:[
+      'Jack has a jug of jam.', 'Puck jumps up on the jug. Jump, jump!', '"Do not jump, Puck!"', 'The jug tips. Jam is on Puck!', 'Puck is a jam duck!', 'Jack licks his lips. Jack has jam on a bun.', 'Puck just sits in the jam. Puck is glad.' ]},
+    { n:['v'], title:'Viv the Vet', stage:2, tricky:['have','give','live'], pages:[
+      'Viv has a van.', 'It is a vet van. Viv is a vet.', 'Puck has jam on his legs. Puck is sick!', 'Viv gets Puck in the van.', 'Viv rubs and rubs. The jam is off!', 'Puck is not sick. Puck just had jam!', '"Have a nap in the van, Puck!"' ]},
+    { n:['w'], title:'Swim, Puck, Swim!', stage:2, tricky:['you'], pages:[
+      'Puck went to swim in the pond.', 'Swim, Puck, swim!', 'A wet dog swims up. It is Pip!', 'Pip wags and wags. Wag, wag!', 'Pip and Puck swim and swim.', '"You win, Pip!" Meg grins.', 'Pip and Puck went back to Meg, wet and glad.' ]},
+    { n:['x'], title:'The Fox in the Box', stage:2, tricky:[], pages:[
+      'Meg has a big box.', 'In the box is a fox!', 'The fox is red. The fox has six kits.', 'The kits mix in the box. Mix, mix, mix!', 'Pip sniffs the box. Sniff, sniff!', 'The fox jumps up. Pip runs off fast!', 'Next, Puck pops up. The kits hug Puck!' ]},
+    { n:['y'], title:'Yum, Yum!', stage:2, tricky:['they','my','by'], pages:[
+      '"Yum, yum!" yells Meg.', '"Yes! My jam bun!"', 'Pip yaps. Yap, yap, yap!', 'They sit by the pond. They have a picnic.', 'Meg has a bun. Pip has a bun. Puck has six buns!', 'Puck is a big, fat duck. Yet Puck still yells, "Yum!"' ]},
+    { n:['z'], title:'Zip! Zap!', stage:2, tricky:[], pages:[
+      'Buzz! Buzz! A bug zips by.', 'Zip! Zap! Zig! Zag!', 'The bug lands on Meg\'s pop. Fizz!', 'Pip jumps. Puck jumps. They zig and zag.', 'The bug zips up and off.', '"It was a buzz bug!" yells Meg.' ]},
+    { n:['qu'], title:'Puck\'s Quest', stage:2, tricky:[], pages:[
+      'Quack! Quack! Puck is on a quest.', 'Puck quacks at the pond. Quick, Puck!', 'Puck dips. A squid? No, it is a big red sock.', 'Puck tugs the sock. Tug, tug!', 'Puck will not quit. Quack!', 'Puck gets the sock up on the bank. It is Meg\'s sock!', 'Meg hugs Puck. Quack, quack!' ]},
+    { n:['ch','tch'], title:'Catch, Puck!', stage:3, tricky:['like','some','come'], pages:[
+      'Come and have lunch!', 'Meg has chips. Pip has a chop.', 'Crunch, crunch. Munch, munch.', 'Puck sits on the bench. Puck has no chips!', 'Puck pecks at Meg\'s chin. Peck, peck!', '"Puck, you can have some."', 'Meg tips a chip up. Catch, Puck!', 'Puck can catch! Puck likes chips so much.' ]},
+    { n:['sh'], title:'The Ship', stage:3, tricky:[], pages:[
+      'Meg and Pip and Puck go on a ship.', 'The ship is big. It has a red mast.', 'Splash! A fish jumps up.', 'Shh! Pip sniffs the fish.', 'Puck dashes to catch the fish.', 'Splash! Puck is in! Puck has the fish!', 'The fish slips off. Puck sits on the deck, wet and fresh.' ]},
+    { n:['th','wh'], title:'What Is That?', stage:3, tricky:['what'], pages:[
+      'This is the path to the hill.', 'Meg, Pip and Puck run up the path.', 'What is that?', 'It is a thick, black cloth on a log.', 'Thud! The cloth jumps! What is in it?', 'It is a moth! A big, big moth!', 'The moth flits off with the cloth.', 'Then they sit on the log and think. What a trip! When can they go back?' ]},
+    { n:['ng'], title:'The Singing King', stage:3, tricky:[], pages:[
+      'Ding, dong! Ring, ring!', 'The king has a long, long song.', 'The king sings and sings.', 'Puck sings with the king. Quack, quack! Sing, sing!', 'Bang! The king\'s ring falls in the pond!', 'Puck swims and gets the ring. Puck is strong!', 'The king hugs Puck. Puck is the best singing duck in the land.' ]},
+    { n:['ed'], title:'The Big Wind', stage:3, tricky:['said','are','there','little','one','were'], pages:[
+      '"There is a big wind!" said Meg.', 'The wind blasted and twisted.', 'Pip jumped in his bed.', 'Puck rested in a little box.', 'Crash! One big branch landed on the shed.', '"Are you all well?" said Dad.', 'They were all well. They hugged and hugged.', 'Then the sun was back, and they jumped in the mud.' ]},
+    { n:['ai'], title:'Wait for the Rain', stage:4, tricky:['here','your','want','again','for'], pages:[
+      'Rain, rain, rain!', 'Meg wants to sail. She has to wait.', 'Wait, wait, wait. A snail slips on the path.', 'The snail has a long, wet trail.', 'Then the rain stops. Meg can sail!', 'Meg, Pip and Puck sail on the pond.', 'Puck flaps his tail. "Here is your sail, Puck!"' ]},
+    { n:['ee'], title:'The Queen Bee', stage:4, tricky:[], pages:[
+      'Meg can see a tree. It is a green tree.', 'In the tree is a bee. Buzz!', 'The bee is the queen bee.', 'The queen bee needs a sweet seed.', 'Puck has three sweet seeds.', 'Puck gives the queen bee one seed.', 'The queen bee is glad. Buzz! She sleeps in the tree.' ]},
+    { n:['igh'], title:'The Night Light', stage:4, tricky:[], pages:[
+      'It is night. Meg cannot sleep.', 'Meg sees a bright light, high up.', 'What is that light? It might be a bug.', 'It is a night bug! It flits left and right.', 'The night bug sits on Meg\'s hand. It is a tight fit!', 'Meg sleeps with the night bug. Night, night!' ]},
+    { n:['oa'], title:'The Goat in a Coat', stage:4, tricky:[], pages:[
+      'A goat in a coat sits on a boat.', 'The goat has toast. Munch, munch.', 'A toad hops on the boat.', 'The toad wants the goat\'s toast!', 'The boat rocks. Splash! The toast is wet.', 'The goat and the toad sit on the dock and munch the wet toast. Yuck!' ]},
+    { n:['oo','oo_short'], title:'Zoom to the Moon', stage:4, tricky:[], pages:[
+      'Look! It is the moon.', 'Meg has a book on the moon.', 'Soon Meg will zoom to the moon!', 'She has cool moon boots.', 'Zoom! Meg is on the moon. She looks and looks.', 'The moon has no food! Good thing Meg took toast and jam.', 'Then Meg zooms back to bed. Good night, moon!' ]},
+    { n:['ar'], title:'Down on the Farm', stage:4, tricky:['could','would','should'], pages:[
+      'Meg and Dad go to the farm in the car.', 'Bark! Bark! A dog runs up.', 'The dog barks at the barn.', 'In the barn is a cart of carrots.', 'Puck would like a carrot. Puck should not have one!', 'At dark, they sit and look at the stars.' ]},
+    { n:['or'], title:'The Storm', stage:4, tricky:['gone','done'], pages:[
+      'Puck is in a storm!', 'Bang! The storm is short but strong.', 'Puck hid in the corn.', 'A horn! Toot, toot! It is the farm cart.', 'Dad has a fork and a torch.', 'Dad sees Puck in the corn. "For you, Puck!" Dad has a cob of corn.', 'Puck munches the corn. The storm is gone.' ]},
+    { n:['ur'], title:'Curl Up, Pip', stage:4, tricky:['put','push','pull','full'], pages:[
+      'It is cold. Pip curls up in his fur.', 'Puck turns and turns. He cannot sleep.', 'Puck hurts his foot on a rock.', 'Puck turns to Pip.', 'Pip lets Puck curl up in his fur.', 'Burst! The sun is up. It is not cold. Pip and Puck sleep on.' ]},
+    { n:['ow'], title:'How Now, Brown Cow', stage:4, tricky:[], pages:[
+      'How now, brown cow!', 'A brown cow is in town.', 'The cow has a crown on.', 'An owl sits on the cow. Hoot!', 'The cow frowns. "Get down, owl!"', 'The owl will not get down.', 'Now the cow and the owl are pals. They go to town and see a clown.' ]},
+    { n:['oi'], title:'The Coin', stage:4, tricky:[], pages:[
+      'Meg digs in the soil.', 'Dig, dig, dig! What is this? It is a coin!', 'The coin has a point on it.', 'Pip joins in. Pip digs and digs.', 'Pip digs up a pot of coins!', 'Meg and Pip are rich! Meg will get a big jar of jam.' ]},
+    { n:['er'], also:['le'], title:'The Monster', stage:4, tricky:[], pages:[
+      'Meg has a letter from her sister, Jen.', 'Jen will come to dinner!', 'Meg gets butter and a ham.', 'Then a monster pops up under the ladder!', 'It is not a monster. It is Jen in a mask!', 'Jen and Meg have a better dinner than ever. Puck gets the butter.' ], tricky2:['from']},
+    { n:['a_e'], also:['e_silent'], title:'The Snake and the Cake', stage:5, tricky:[], pages:[
+      'Jen and Meg make a cake.', 'They bake the cake. It is a grape cake!', 'A snake comes to the gate. Shake, shake!', 'The snake wants the cake.', 'Puck flaps and flaps. "Go back to the lake, snake!"', 'The snake slips back to the lake.', 'They all have cake. Then they name the snake Jake.' ]},
+    { n:['i_e'], title:'The White Kite', stage:5, tricky:[], pages:[
+      'It is time to ride a bike!', 'Meg rides her bike to the pine trees.', 'Jen has a white kite.', 'The kite is high up in the wind.', 'Oh no! The kite is stuck in a pine.', 'Puck flaps up five times and gets the kite!', 'Meg smiles. Jen smiles. Puck wins the prize!' ]},
+    { n:['o_e'], title:'Pip\'s Bone', stage:5, tricky:['from'], pages:[
+      'Pip has a bone.', 'Pip pokes his nose in a hole. He hides the bone.', 'Puck spots the hole. Poke, poke!', 'Puck gets the bone. What a joke!', 'Pip cannot find his bone. He sniffs and sniffs.', 'He finds a note: "Your bone is at home. From Puck."', 'Pip runs home. The bone is in his bed! Pip is glad to have his bone back.' ]},
+    { n:['u_e'], title:'The Cute Mule', stage:5, tricky:[], pages:[
+      'In June, Meg gets a flute.', 'She can toot a tune on the flute.', 'Toot, toot! A mule pokes his nose in.', 'The mule is cute. He likes the tune.', 'Meg has a rule: the mule must hum.', 'Hum, hum! The mule hums the tune! What a cute mule!' ]},
+    { n:['ay'], title:'Play in the Hay', stage:5, tricky:['says'], pages:[
+      'It is a fun day to play.', 'Meg and Jen play in the hay.', 'Puck lays an egg in the hay!', '"May I play?" asks a little gray kitten.', 'They all play in the hay all day.', 'At the end of the day, Puck stays in the hay with his egg.' ]},
+    { n:['ea'], title:'A Day at the Beach', stage:5, tricky:[], pages:[
+      'Meg and Jen go to the beach.', 'They sit by the sea and eat a peach.', 'Puck dips his beak in the sea. Splash!', 'A seal pops up! The seal wants a peach.', 'Meg gives the seal a peach. The seal claps.', 'Then they all dream on the beach, in the heat of the sun.' ]},
+    { n:['ou'], title:'Found You!', stage:5, tricky:[], pages:[
+      'Shout it out loud: Puck is lost!', 'Meg looks up and down, round and round.', 'She sees a big gray cloud.', 'Is Puck in the cloud? No!', 'Meg hears a sound on the ground. Quack!', 'Meg found Puck in a mound of sand. He was asleep!', 'Meg shouts, "Found you!"' ]},
+    { n:['oy'], title:'Roy\'s Toy Boat', stage:5, tricky:[], pages:[
+      'Roy is a boy with a toy boat.', 'Ahoy! Roy sails his boat on the pond.', 'Puck swims up. Puck wants the toy!', 'Roy and Puck sail the toy boat with joy.', 'The boat tips. Oh, boy!', 'Roy jumps in. Puck helps Roy get the toy boat out.', 'Roy enjoys his day with Puck.' ]},
+    { n:['ir'], title:'The Little Bird', stage:5, tricky:[], pages:[
+      'The girl in the red shirt is Meg.', 'Meg sees a bird in the dirt.', 'The bird has hurt its wing.', 'First, Meg gets a box.', 'Then she stirs some seeds in a dish.', 'The bird eats the seeds. It twirls and flaps.', 'On the third day, the bird is well, and it is off!' ]},
+    { n:['ew','ue'], title:'The Blue Clue', stage:5, tricky:[], pages:[
+      'Meg drew a map with a clue.', 'The clue is blue: Look in the green tree.', 'Meg went up the tree. In the tree is a new blue box.', 'The box is stuck with glue!', 'Pip chews the box. Chew, chew!', 'In the box is Puck\'s lunch: a few seeds and some green peas.', 'Puck flew up and ate it all. True!' ]},
+    { n:['aw','au'], title:'The Crab on the Lawn', stage:5, tricky:[], pages:[
+      'At dawn, Pip saw a crab on the lawn.', 'The crab has big claws. Snap!', 'Pip pokes the crab with his paw.', 'The crab nips Pip\'s paw!', 'Pip yawns. He is not scared.', 'The crab crawls back to the sea.', 'Pip naps on the lawn in the straw.' ]},
+    { n:['y_ee','y_igh'], title:'A Happy Windy Day', stage:5, tricky:[], pages:[
+      'It is a sunny day. The sky is blue.', 'Meg, Pip and Puck are happy.', '"Why not fly a kite?" says Jen.', 'They try and try. The kite will not fly!', 'Then it is windy. Up, up the kite zooms into the sky!', 'Puck flaps next to the kite. What a silly, funny duck!', 'My, my! What a happy day.' ]}
+  ];
+  L.forEach((lv, i) => { lv.id = 'L' + (i + 1); lv.num = i + 1; lv.also = lv.also || []; lv.tricky = (lv.tricky || []).concat(lv.tricky2 || []); });
+  const STAGES = { 1:'First sounds', 2:'More letters', 3:'Two letters, one sound', 4:'Vowel teams', 5:'Magic e and more' };
+  const BEYOND = ['c_soft','g_soft','dge','ph','kn','wr','ie','ey','ea_short','ow_long','tion'];
+
+  function knownAt(n) {
+    const known = new Set(), tricky = new Set();
+    for (let i = 0; i < n && i < L.length; i++) {
+      L[i].n.forEach(u => known.add(u)); L[i].also.forEach(u => known.add(u));
+      L[i].tricky.forEach(t => tricky.add(t.toLowerCase()));
+    }
+    if (n > L.length) BEYOND.forEach(u => known.add(u));
+    return { known, tricky };
+  }
+  G.Ladder = { LEVELS: L, STAGES, knownAt, BEYOND };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+(function(){
+const P = window.Phonics, LD = window.Ladder, U = P.UNITS;
+const APP_VERSION = '2026-11-22b';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DUCK = '<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="34" cy="42" rx="22" ry="15" fill="#FFD23F"/><circle cx="24" cy="24" r="13" fill="#FFD23F"/><path d="M6 25 L15 21 L15 29 Z" fill="#F2803B"/><circle cx="21" cy="21" r="2.4" fill="#2A2733"/><path d="M36 38 q10 -8 18 2" stroke="#E8B523" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
+$('#duck').innerHTML = DUCK;
+
+// ---------- state ----------
+const DEF = { done:{}, settings:{ ipa:false, example:true, highlight:true, rate:0.8, voice:'', name:'', size:'M' } };
+let S = JSON.parse(JSON.stringify(DEF));
+let books = [];   // {id,title,page,chars,text?}
+let stories = []; // {id,title,pages,level,focus,created}
+let where = 'device'; // or 'account'
+const LS = {
+  get(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+function mergeState(x){ if(!x) return; S.done = Object.assign({}, x.done||{}); S.settings = Object.assign({}, DEF.settings, x.settings||{}); }
+mergeState(LS.get('rwp_state'));
+books = LS.get('rwp_books') || [];
+stories = LS.get('rwp_stories') || [];
+
+// account storage (Claude db), loaded when available
+let DB = null, UID = null, libRef = null;
+let saveTimer = null, saving = false, saveAgain = false;
+function saveState(){
+  LS.set('rwp_state', S);
+  if(!DB) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushState, 700);
+}
+async function flushState(){
+  if(!DB) return;
+  if(saving){ saveAgain = true; return; }
+  saving = true;
+  try{ await DB.doc('data/users/'+UID+'/progress').set({ done:S.done, settings:S.settings }); }catch(e){}
+  saving = false;
+  if(saveAgain){ saveAgain = false; flushState(); }
+}
+function saveBooksLocal(){
+  LS.set('rwp_books', books.map(b => ({id:b.id,title:b.title,page:b.page,chars:b.chars,text: DB ? undefined : b.text})));
+}
+function saveStoriesLocal(){ LS.set('rwp_stories', stories); }
+
+async function initCloud(){
+  if(!window.claude || !window.claude.use) return;
+  try{
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    if(!db || !user) return;
+    const uid = await user.id();
+    if(!uid) return;
+    DB = db; UID = uid; libRef = db.doc('data/users/'+uid+'/library');
+    const timer = setTimeout(()=>toast("Couldn't reach saved progress yet. Using this device for now."), 10000);
+    const snap = await db.doc('data/users/'+uid+'/progress').get();
+    if(snap.exists){
+      const d = snap.data();
+      // merge: keep any stars earned on either side
+      const done = Object.assign({}, d.done||{}, S.done);
+      mergeState({ done, settings: Object.assign({}, S.settings, d.settings||{}) });
+    }
+    await DB.doc('data/users/'+uid+'/progress').set({ done:S.done, settings:S.settings }).catch(()=>{});
+    const bs = await libRef.collection('books').get();
+    const cloudBooks = bs.docs.map(x => Object.assign({id:x.id}, x.data()));
+    // upload any device-only books
+    for(const b of books){ if(b.text && !cloudBooks.find(c=>c.id===b.id)){ try{ await putBook(b); cloudBooks.push({id:b.id,title:b.title,page:b.page,chars:b.chars}); }catch(e){} } }
+    books = cloudBooks.sort((a,b)=>(b.added||0)-(a.added||0));
+    const ss = await libRef.collection('stories').get();
+    const cloudStories = ss.docs.map(x => Object.assign({id:x.id}, x.data()));
+    for(const s of stories){ if(!cloudStories.find(c=>c.id===s.id)){ try{ await libRef.collection('stories').doc(s.id).set(s); cloudStories.push(s);}catch(e){} } }
+    stories = cloudStories.sort((a,b)=>(b.created||0)-(a.created||0));
+    clearTimeout(timer);
+    where = 'account';
+    LS.set('rwp_state', S); saveBooksLocal(); saveStoriesLocal();
+    applySize(); render();
+  }catch(e){ /* stay on device storage */ }
+}
+async function putBook(b){
+  const ref = libRef.collection('books').doc(b.id);
+  const CH = 150000; const n = Math.ceil(b.text.length / CH) || 1;
+  for(let i=0;i<n;i++) await ref.collection('chunks').doc(String(i).padStart(3,'0')).set({ t: b.text.slice(i*CH,(i+1)*CH) });
+  await ref.set({ title:b.title, page:b.page||0, chars:b.text.length, chunks:n, added:b.added||Date.now() });
+}
+async function loadBookText(b){
+  if(b.text) return b.text;
+  const local = LS.get('rwp_book_'+b.id); if(local) { b.text = local; return local; }
+  if(!DB) return '';
+  const cs = await libRef.collection('books').doc(b.id).collection('chunks').get();
+  b.text = cs.docs.map(d => d.data().t).join('');
+  return b.text;
+}
+let pageSaveT = null;
+function saveBookPage(b){
+  saveBooksLocal();
+  if(!DB) return;
+  clearTimeout(pageSaveT);
+  pageSaveT = setTimeout(()=>{ libRef.collection('books').doc(b.id).update({ page:b.page }).catch(()=>{}); }, 1200);
+}
+
+// sample (Claude) capability
+let SAMPLE = null, TTS = null;
+async function initCaps(){
+  if(!window.claude || !window.claude.use) return;
+  try{ SAMPLE = await window.claude.use('sample'); }catch(e){}
+  try{ TTS = await window.claude.use('tts'); }catch(e){}
+  if(SAMPLE) $('#navMake').classList.remove('hidden');
+  if(current === 'make' || current === 'library') render();
+}
+
+// ---------- speech ----------
+let voices = [];
+const hasSS = 'speechSynthesis' in window;
+function loadVoices(){ if(!hasSS) return; voices = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)); }
+if(hasSS){ loadVoices(); speechSynthesis.onvoiceschanged = () => { loadVoices(); if(current==='settings') render(); }; }
+function pickVoice(){
+  if(!voices.length) return null;
+  if(S.settings.voice){ const v = voices.find(v => v.voiceURI === S.settings.voice); if(v) return v; }
+  const pref = ['Samantha','Ava','Allison','Google US English','Microsoft Aria','Microsoft Jenny','Karen','Moira'];
+  for(const p of pref){ const v = voices.find(v => v.name.includes(p)); if(v) return v; }
+  return voices.find(v => v.lang === 'en-US') || voices[0];
+}
+let speakToken = 0;
+function stopSpeak(){ speakToken++; if(hasSS) speechSynthesis.cancel(); if(TTS) try{TTS.stop();}catch(e){} }
+function speak(text, rateMul){
+  const rate = Math.max(0.5, Math.min(1.4, S.settings.rate * (rateMul||1)));
+  const my = speakToken;
+  if(hasSS){
+    return new Promise(res => {
+      const u = new SpeechSynthesisUtterance(text);
+      const v = pickVoice(); if(v){ u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
+      u.rate = rate; u.pitch = 1.05;
+      let done = false; const fin = () => { if(!done){ done = true; res(my === speakToken); } };
+      u.onend = fin; u.onerror = fin;
+      setTimeout(fin, 900 + text.length * 140 / rate);
+      speechSynthesis.speak(u);
+    });
+  }
+  if(TTS) return TTS.speak(text, { rate: Math.max(0.7, rate), language:'en' }).then(()=>my===speakToken).catch(()=>false);
+  toast('Sound is not available here. Try opening this page in Safari or Chrome.');
+  return Promise.resolve(false);
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function sayFor(ch){ return P.SAY[ch.ipa] || ch.t.toLowerCase(); }
+const NAMES = {a:'ay',b:'bee',c:'see',d:'dee',e:'ee',f:'eff',g:'jee',h:'aitch',i:'eye',j:'jay',k:'kay',l:'el',m:'em',n:'en',o:'oh',p:'pee',q:'cue',r:'are',s:'ess',t:'tee',u:'you',v:'vee',w:'double you',x:'ex',y:'why',z:'zee'};
+function spellLetters(t){ return t.toUpperCase().replace(/[^A-Z]/g,'').split('').join('. ') + '.'; }
+function chipName(ch){ return spellLetters(ch.t); }
+function unitName(u){ return spellLetters(unitLabel(u).replace('_','')); }
+function exFor(ch){ if(!ch.u || !U[ch.u]) return null; return P.EX2[ch.u+'|'+ch.ipa] || U[ch.u].ex; }
+async function speakChip(ch, word){
+  stopSpeak(); await wait(40);
+  // Letter name(s), then a simple word with the same sound
+  let name = chipName(ch);
+  if(ch.magic){
+    const v = word.chips.find(c => c.magic && !c.silent);
+    if(ch.silent) return speak('E. It is silent. It makes the vowel say its name. Like in ' + (exFor(v) || word.word) + '.');
+    name = spellLetters(ch.t) + ' With the silent E.';
+  } else if(ch.silent) return speak(name + ' It is silent here.');
+  if(!S.settings.example) return speak(name);
+  const ex = (ch.tricky || !ch.u) ? word.word : (exFor(ch) || word.word);
+  return speak(name + ' Like in ' + ex + '.');
+}
+async function soundOut(word, onStep){
+  stopSpeak(); await wait(40);
+  const my = speakToken;
+  const parts = word.chips.map((c,i)=>({c,i})).filter(x => !x.c.punct);
+  for(const x of parts){
+    if(my !== speakToken) return;
+    onStep(x.i);
+    await speak(chipName(x.c), 1);
+    await wait(220);
+  }
+  if(my !== speakToken) return;
+  onStep(-1);
+  await wait(250);
+  await speak(word.word.toLowerCase() === 'i' ? 'I' : word.word);
+}
+
+// ---------- helpers ----------
+let toastT = null;
+function toast(msg){
+  let t = $('.toast'); if(!t){ t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.remove('hidden');
+  clearTimeout(toastT); toastT = setTimeout(()=>t.classList.add('hidden'), 3200);
+}
+function confirmBox(msg, yes){
+  const o = $('#overlay');
+  o.className = 'sheet-bg';
+  o.innerHTML = `<div class="sheet"><p style="font-size:18px">${esc(msg)}</p><div class="zrow"><button class="btn alt" id="cNo">Cancel</button><button class="btn" id="cYes">Yes</button></div></div>`;
+  $('#cNo').onclick = () => { o.className='hidden'; o.innerHTML=''; };
+  $('#cYes').onclick = () => { o.className='hidden'; o.innerHTML=''; yes(); };
+}
+function unitLabel(u){ return (U[u] && U[u].label) || u; }
+function unitShow(u){ const l = unitLabel(u); return l.includes('_') ? l.replace('_', '‿') : l; }
+function nextLevel(){ const lv = LD.LEVELS.find(l => !S.done[l.id]); return lv || null; }
+function chipClass(ch){
+  if(ch.tricky) return 'tr';
+  if(ch.silent) return ch.magic ? 'm' : 's';
+  if(ch.magic) return 'm';
+  const u = ch.u && U[ch.u];
+  if(u && u.v) return 'v';
+  if(!ch.u && /[aeiouy]/i.test(ch.t)) return 'v';
+  return 'c';
+}
+function applySize(){ document.documentElement.style.setProperty('--scale', {S:0.82,M:1,L:1.22}[S.settings.size] || 1); }
+applySize();
+
+// ---------- reading level grader ----------
+const UNIT_LVL = {}, TRICKY_LVL = {};
+LD.LEVELS.forEach(l => { l.n.concat(l.also).forEach(u => { if(!(u in UNIT_LVL)) UNIT_LVL[u] = l.num; }); l.tricky.forEach(t => { t = t.toLowerCase(); if(!(t in TRICKY_LVL)) TRICKY_LVL[t] = l.num; }); });
+LD.BEYOND.forEach(u => { if(!(u in UNIT_LVL)) UNIT_LVL[u] = 53; });
+const BONUS = 53, NEWHEART = 99, MAXL = LD.LEVELS.length;
+function herLevel(){ const nx = nextLevel(); return nx ? nx.num - 1 : MAXL; }
+function wordLevel(word){
+  const p = P.parseWord(word), lw = p.lw;
+  let t = TRICKY_LVL[lw]; if(t === undefined && lw.endsWith('s')) t = TRICKY_LVL[lw.slice(0,-1)];
+  let lv = 0;
+  if(P.EXC[lw] && p.heart) lv = NEWHEART;
+  else for(const c of p.chips){ if(c.punct) continue; const ul = c.u ? UNIT_LVL[c.u] : undefined; if(ul === undefined){ lv = NEWHEART; break; } if(ul > lv) lv = ul; }
+  return t !== undefined ? Math.min(t, lv) : lv;
+}
+function syllables(word){
+  const p = P.parseWord(word); let n = 0;
+  for(const c of p.chips){ if(c.silent || c.punct) continue; if((c.u && U[c.u] && U[c.u].v) || /[æɛɪɑʌəʊiuɔɝɚ]|eɪ|aɪ|oʊ|aʊ|ɔɪ/.test(c.ipa) && c.u !== 'y') n++; }
+  return Math.max(1, n);
+}
+const gradeCache = new Map();
+function gradeText(text, key){
+  const her = herLevel();
+  const ck = key ? key + '|' + her : null;
+  if(ck && gradeCache.has(ck)) return gradeCache.get(ck);
+  const words = [];
+  for(const tk of P.tokenize(text)) if(tk.w) words.push(tk.text);
+  const N = words.length;
+  if(!N) return null;
+  const memo = new Map();
+  const lvOf = w => { const k = w.toLowerCase(); if(!memo.has(k)) memo.set(k, wordLevel(w)); return memo.get(k); };
+  const levels = words.map(lvOf).sort((a,b) => a-b);
+  const target = levels[Math.max(0, Math.ceil(N * 0.95) - 1)];
+  const nowPct = Math.round(100 * levels.filter(l => l <= her).length / N);
+  // what she still needs (from words above her level)
+  const units = new Map(), hearts = new Map(), hard = new Map();
+  for(const w of words){
+    const lv = lvOf(w); if(lv <= her) continue;
+    const p = P.parseWord(w), lw = p.lw;
+    const tl = TRICKY_LVL[lw] ?? (lw.endsWith('s') ? TRICKY_LVL[lw.slice(0,-1)] : undefined);
+    if(tl !== undefined && tl <= target){ hearts.set(lw, (hearts.get(lw)||0) + 1); continue; }
+    if(P.EXC[lw] && p.heart){ hearts.set(lw, (hearts.get(lw)||0) + 1); continue; }
+    for(const c of p.chips){
+      if(c.punct || !c.u || UNIT_LVL[c.u] === undefined || UNIT_LVL[c.u] <= her) continue;
+      const e = units.get(c.u) || { u:c.u, n:0, words:new Set() }; e.n++; if(e.words.size < 4) e.words.add(lw); units.set(c.u, e);
+    }
+    if(lv >= BONUS) hard.set(lw, (hard.get(lw)||0) + 1);
+  }
+  const sentences = Math.max(1, (text.match(/[.!?]+/g) || []).length);
+  const syl = words.reduce((a,w) => a + syllables(w), 0);
+  const fk = Math.max(0, 0.39 * (N / sentences) + 11.8 * (syl / N) - 15.59);
+  const res = { N, target, her, nowPct, fk: Math.round(fk * 10) / 10,
+    units: [...units.values()].sort((a,b) => (UNIT_LVL[a.u] - UNIT_LVL[b.u]) || (b.n - a.n)),
+    hearts: [...hearts.entries()].sort((a,b) => b[1]-a[1]).map(x => x[0]),
+    hard: [...hard.entries()].sort((a,b) => b[1]-a[1]).map(x => x[0]).slice(0, 12) };
+  if(ck) gradeCache.set(ck, res);
+  return res;
+}
+function levelLabel(n){
+  if(n <= 0) return 'Level 1';
+  if(n <= MAXL){ const l = LD.LEVELS[n-1]; return `Level ${n} (${l.n.map(unitLabel).join(', ')})`; }
+  if(n === BONUS) return 'After the ladder (bonus sounds)';
+  return 'After the ladder (extra heart words)';
+}
+function badgeFor(g){
+  if(!g) return '';
+  const ok = g.target <= g.her;
+  const t = g.target <= MAXL ? 'Level ' + g.target : 'Beyond ladder';
+  return `<span class="badge ${ok?'ok':''}">${ok ? '✓ ' : ''}${t}</span>`;
+}
+function showGrade(title, text, key){
+  const g = gradeText(text, key);
+  const o = $('#overlay'); o.className = 'sheet-bg';
+  if(!g){ o.innerHTML = `<div class="sheet"><p>No words to check.</p><button class="btn full" id="gClose">OK</button></div>`; $('#gClose').onclick = () => { o.className='hidden'; o.innerHTML=''; }; return; }
+  const ready = g.target <= g.her;
+  const headline = g.target <= MAXL ? `Easy to read at <b>${esc(levelLabel(g.target))}</b>` : `Easy to read <b>${esc(levelLabel(g.target).toLowerCase())}</b>`;
+  const herTxt = g.her === 0 ? "She hasn't finished a story yet." : `She has finished up to <b>Level ${g.her}</b>.`;
+  let h = `<div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">Reading check</b><button class="iconbtn" id="gClose" aria-label="Close">✕</button></div>
+    <p class="muted" style="margin:4px 0 10px">${esc(title)} · ${g.N} words · ${g.fk < 1 ? 'kindergarten to first grade' : 'about grade ' + g.fk.toFixed(1)}</p>
+    <div class="card" style="margin:0 0 12px"><div style="font-size:19px">${headline}</div>
+    <p style="margin:8px 0 4px">${herTxt} She can sound out <b>${g.nowPct}%</b> of the words now.</p>
+    <div class="meter"><i style="width:${g.nowPct}%"></i><s style="left:95%"></s></div>
+    <p class="muted" style="margin:6px 0 0">${ready ? 'She should be able to read this on her own.' : 'Easy reading means she can sound out about 95 of every 100 words (the line on the bar).'}</p></div>`;
+  if(!ready && g.units.length){
+    h += `<b>Sounds to master first</b><div style="margin:8px 0 12px">`;
+    for(const e of g.units.slice(0, 12)){
+      const lv = UNIT_LVL[e.u];
+      h += `<div class="item"><div class="sndmini">${esc(unitShow(e.u))}</div><div class="grow"><b style="font-weight:400">${esc([...e.words].join(', '))}</b><span class="muted">${e.n} time${e.n>1?'s':''} · ${lv <= MAXL ? 'taught in Level ' + lv : 'bonus sound'}</span></div>${lv <= MAXL ? `<button class="btn alt small" data-lvl="L${lv}">Practice</button>` : ''}</div>`;
+    }
+    h += `</div>`;
+  }
+  if(!ready && g.hearts.length) h += `<b>Heart words to learn</b><div class="wordlist" style="justify-content:flex-start;margin:8px 0 12px">${g.hearts.slice(0,16).map(w => `<span class="pill">${esc(w)}</span>`).join('')}</div>`;
+  if(!ready && g.hard.length) h += `<b>Hardest words</b><p class="muted" style="margin:4px 0 0">${esc(g.hard.join(', '))}</p>`;
+  h += `</div>`;
+  o.innerHTML = h;
+  $('#gClose').onclick = () => { o.className='hidden'; o.innerHTML=''; };
+  o.onclick = e => { if(e.target === o){ o.className='hidden'; o.innerHTML=''; } };
+  o.querySelectorAll('[data-lvl]').forEach(b => b.onclick = () => { o.className='hidden'; o.innerHTML=''; openLevel(b.dataset.lvl); });
+}
+
+// ---------- shared stories from the GitHub repo ----------
+let shared = LS.get('rwp_shared') || []; // {id,name,title,pages}
+function parseStoryFile(name, raw){
+  const txt = raw.replace(/\r/g,'').replace(/^﻿/,'');
+  const lines = txt.split('\n');
+  let i = 0; while(i < lines.length && !lines[i].trim()) i++;
+  let title = (lines[i] || name).trim().replace(/^#+\s*/,'').replace(/^title:\s*/i,'');
+  const body = lines.slice(i+1).join('\n').replace(/^\s*-{3,}\s*$/gm, '\n\n').trim();
+  let pages = body.split(/\n\s*\n/).map(p => p.replace(/\s*\n\s*/g,' ').trim()).filter(Boolean);
+  if(pages.length > 40 || pages.some(p => p.split(/\s+/).length > 70)) pages = paginate(body, 75);
+  if(!pages.length) pages = [title];
+  return { id: 'g-' + name, name, title, pages };
+}
+function repoInfo(){
+  const host = location.hostname;
+  if(!host.endsWith('.github.io')) return null;
+  const owner = host.split('.')[0];
+  const seg = location.pathname.split('/').filter(Boolean);
+  const repo = seg.length && !seg[0].includes('.') ? seg[0] : host;
+  return { owner, repo };
+}
+async function loadShared(){
+  if(!/^https?:$/.test(location.protocol)) return;
+  let names = null;
+  const ri = repoInfo();
+  if(ri){
+    try{
+      const r = await fetch(`https://api.github.com/repos/${ri.owner}/${ri.repo}/contents/stories`, { cache:'no-store' });
+      if(r.ok) names = (await r.json()).filter(f => f.type === 'file' && /\.(txt|md)$/i.test(f.name) && !/^readme/i.test(f.name)).map(f => f.name);
+    }catch(e){}
+  }
+  if(!names){
+    try{ const r = await fetch('stories/index.json', { cache:'no-store' }); if(r.ok){ const j = await r.json(); names = Array.isArray(j) ? j : (j.stories || []); } }catch(e){}
+  }
+  if(!names) return;
+  const out = [];
+  for(const n of names){
+    try{ const r = await fetch('stories/' + encodeURIComponent(n), { cache:'no-cache' }); if(r.ok) out.push(parseStoryFile(n, await r.text())); }catch(e){
+      const old = shared.find(s => s.name === n); if(old) out.push(old);
+    }
+  }
+  out.sort((a,b) => a.title.localeCompare(b.title));
+  const changed = JSON.stringify(out) !== JSON.stringify(shared);
+  shared = out; LS.set('rwp_shared', shared);
+  if(changed && (current === 'library' || current === 'stories')) render();
+}
+
+// ---------- views ----------
+let current = 'stories';
+document.querySelectorAll('.nav button').forEach(b => b.onclick = () => go(b.dataset.v));
+$('#gear').onclick = () => go('settings');
+function go(v){
+  current = v;
+  document.querySelectorAll('main > section').forEach(s => s.classList.toggle('hidden', s.id !== 'v-'+v));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  render(); window.scrollTo(0,0);
+}
+function render(){
+  ({stories:renderStories, sounds:renderSounds, library:renderLibrary, make:renderMake, settings:renderSettings})[current]();
+}
+
+function renderStories(){
+  const nx = nextLevel();
+  const name = S.settings.name ? ', ' + esc(S.settings.name) : '';
+  const doneCount = Object.keys(S.done).filter(k => k.startsWith('L')).length;
+  let h = `<div class="card">`;
+  if(nx){
+    h += `<div class="muted">Hi${name}! Next story</div>
+    <div class="hero"><div class="big">${nx.n.map(unitShow).join(' ')}</div>
+    <div style="flex:1"><div style="font-size:22px;font-weight:700">${esc(nx.title)}</div><div class="muted">Level ${nx.num} of ${LD.LEVELS.length} · new sound${nx.n.length>1?'s':''}</div></div></div>
+    <button class="btn full" style="margin-top:12px" data-open="${nx.id}">Read it! ▶</button>`;
+  } else {
+    h += `<div style="font-size:22px;font-weight:700">Every sound learned! 🎉</div><p class="muted">Head to <b>Make</b> for longer chapter stories, or add a real book in <b>Library</b>.</p>`;
+  }
+  h += `<div class="muted" style="margin-top:10px">⭐ ${doneCount} of ${LD.LEVELS.length} stories read</div></div>`;
+  const her = herLevel();
+  const ready = shared.filter(s => { const g = gradeText(s.pages.join('\n\n'), s.id); return g && g.target <= her && !S.done['G-'+s.name]; });
+  if(ready.length) h += `<div class="card"><b>New stories she can read 📬</b>${ready.slice(0,4).map(s => `<div class="item"><div class="grow"><b>${esc(s.title)}</b></div><button class="btn small" data-sh="${esc(s.id)}">Read</button></div>`).join('')}</div>`;
+  for(const st of [1,2,3,4,5]){
+    h += `<div class="stage"><h2>Stage ${st}: ${LD.STAGES[st]}</h2><div class="grid">`;
+    for(const lv of LD.LEVELS.filter(l => l.stage === st)){
+      h += `<button class="tile ${nx && nx.id===lv.id ? 'next':''}" data-open="${lv.id}">
+        ${S.done[lv.id] ? '<span class="star">⭐</span>' : ''}
+        <div class="num">${lv.num}</div><div class="snd" style="color:var(--vow)">${lv.n.map(unitShow).join(' ')}</div><div class="ttl">${esc(lv.title)}</div></button>`;
+    }
+    h += `</div></div>`;
+  }
+  $('#v-stories').innerHTML = h;
+  $('#v-stories').querySelectorAll('[data-open]').forEach(b => b.onclick = () => openLevel(b.dataset.open));
+  $('#v-stories').querySelectorAll('[data-sh]').forEach(b => b.onclick = () => openShared(b.dataset.sh));
+}
+
+function renderSounds(){
+  const nx = nextLevel();
+  const upto = nx ? nx.num : LD.LEVELS.length + 1;
+  const { known } = LD.knownAt(upto);
+  let h = `<div class="card"><b>Letter sounds</b><p class="muted" style="margin:4px 0 0">Tap any sound to hear its letters and a word that uses it. Bright ones are sounds from the stories so far. The ‿ means magic e: the vowel and the e work together, like a_e in cake.</p>
+  <div class="legend"><span><b style="background:var(--vow)"></b>vowel sound</span><span><b style="background:var(--con)"></b>consonant sound</span><span><b style="background:var(--magic)"></b>magic e</span></div></div>`;
+  const order = [];
+  LD.LEVELS.forEach(l => l.n.concat(l.also).forEach(u => { if(!order.includes(u)) order.push(u); }));
+  LD.BEYOND.forEach(u => order.push(u));
+  const blocks = [['Sounds in the stories', order.filter(u => !LD.BEYOND.includes(u))], ['Bonus sounds for real books', LD.BEYOND]];
+  for(const [title, list] of blocks){
+    h += `<div class="stage"><h2>${title}</h2><div class="sgrid">`;
+    for(const u of list){
+      const d = U[u]; if(!d) continue;
+      const cls = u.includes('_e') ? 'm' : (d.v ? 'v' : 'c');
+      h += `<button class="${cls} ${known.has(u)?'':'lock'}" data-u="${u}"><div class="l">${esc(unitShow(u))}</div>${S.settings.ipa && d.ipa ? `<div class="ip">/${esc(d.ipa)}/</div>`:''}<div class="e">${esc(d.ex)}</div></button>`;
+    }
+    h += `</div></div>`;
+  }
+  $('#v-sounds').innerHTML = h;
+  $('#v-sounds').querySelectorAll('[data-u]').forEach(b => b.onclick = async () => {
+    const u = b.dataset.u, d = U[u];
+    stopSpeak(); await wait(40);
+    if(u === 'e_silent'){ speak('E. It is silent. Like in have.'); return; }
+    speak(unitName(u) + (u.endsWith('_e') && u.length===3 ? ' With the silent E.' : '') + ' Like in ' + d.ex + '.');
+  });
+}
+
+function renderLibrary(){
+  let h = `<div class="card"><b>Add a book</b>
+  <p class="muted" style="margin:4px 0 8px">Paste the text of a book you own, or pick a plain text (.txt) file. Every word is tappable, just like the stories.</p>
+  <label class="f" for="bTitle">Title</label><input type="text" id="bTitle" placeholder="My book">
+  <label class="f" for="bText">Text</label><textarea id="bText" placeholder="Paste the story here..."></textarea>
+  <div class="zrow"><label class="btn alt" style="text-align:center;flex:1">📄 Pick a .txt file<input type="file" id="bFile" accept=".txt,.md,text/plain" class="hidden"></label><button class="btn alt" id="bCheck" style="flex:1">📊 Check level</button></div>
+  <button class="btn full" id="bAdd" style="margin-top:10px">Add to library</button>
+  <p class="muted" style="margin:8px 0 0">${where==='account' ? 'Books save to your Claude account, so they follow you to other devices.' : 'Books save on this device.'}</p></div>`;
+  let sh = `<div class="card"><b>Shared stories</b>`;
+  if(!shared.length) sh += `<p class="muted">${repoInfo() ? 'Stories put in the stories folder of the app on GitHub show up here.' : 'When the app runs from GitHub, stories in its stories folder show up here.'}</p>`;
+  for(const s of shared){ const g = gradeText(s.pages.join('\n\n'), s.id); sh += `<div class="item"><div class="grow"><b>${esc(s.title)}${S.done['G-'+s.name]?' ⭐':''}</b>${badgeFor(g)}</div><button class="btn alt small" data-gs="${esc(s.id)}" aria-label="Reading check">📊</button><button class="btn small" data-sh="${esc(s.id)}">Read</button></div>`; }
+  sh += `</div>`;
+  h = sh + h;
+  h += `<div class="card"><b>Your books</b>`;
+  if(!books.length) h += `<p class="muted">No books yet.</p>`;
+  for(const b of books) h += `<div class="item"><div class="grow"><b>${esc(b.title)}</b><span class="muted">${b.page ? 'On page ' + (b.page+1) : 'Not started'}</span>${b.text ? badgeFor(gradeText(b.text, b.id)) : ''}</div><button class="btn alt small" data-gb="${b.id}" aria-label="Reading check">📊</button><button class="btn small" data-b="${b.id}">Read</button><button class="btn alt small" data-bdel="${b.id}">✕</button></div>`;
+  h += `</div><div class="card"><b>Stories made for you</b>`;
+  if(!stories.length) h += `<p class="muted">Stories you make in the Make tab land here.</p>`;
+  for(const s of stories) h += `<div class="item"><div class="grow"><b>${esc(s.title)}</b><span class="muted">${esc(levelName(s.level))}${S.done['S-'+s.id]?' · ⭐':''}</span></div><button class="btn alt small" data-gst="${s.id}" aria-label="Reading check">📊</button><button class="btn small" data-s="${s.id}">Read</button><button class="btn alt small" data-sdel="${s.id}">✕</button></div>`;
+  h += `</div>`;
+  $('#v-library').innerHTML = h;
+  $('#bFile').onchange = e => {
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = () => { $('#bText').value = r.result; if(!$('#bTitle').value) $('#bTitle').value = f.name.replace(/\.[^.]+$/, ''); };
+    r.readAsText(f);
+  };
+  $('#bAdd').onclick = addBook;
+  $('#bCheck').onclick = () => { const t = $('#bText').value.trim(); if(!t){ toast('Paste some text first.'); return; } showGrade($('#bTitle').value.trim() || 'This text', t); };
+  $('#v-library').querySelectorAll('[data-sh]').forEach(b => b.onclick = () => openShared(b.dataset.sh));
+  $('#v-library').querySelectorAll('[data-gs]').forEach(b => b.onclick = () => { const s = shared.find(x => x.id === b.dataset.gs); showGrade(s.title, s.pages.join('\n\n'), s.id); });
+  $('#v-library').querySelectorAll('[data-gst]').forEach(b => b.onclick = () => { const s = stories.find(x => x.id === b.dataset.gst); showGrade(s.title, s.pages.join('\n\n'), s.id); });
+  $('#v-library').querySelectorAll('[data-gb]').forEach(b => b.onclick = async () => { const bk = books.find(x => x.id === b.dataset.gb); const t = await loadBookText(bk); showGrade(bk.title, t, bk.id); });
+  $('#v-library').querySelectorAll('[data-b]').forEach(b => b.onclick = () => openBook(b.dataset.b));
+  $('#v-library').querySelectorAll('[data-s]').forEach(b => b.onclick = () => openStory(b.dataset.s));
+  $('#v-library').querySelectorAll('[data-bdel]').forEach(b => b.onclick = () => {
+    const bk = books.find(x => x.id === b.dataset.bdel);
+    confirmBox(`Remove "${bk.title}" from the library?`, async () => {
+      books = books.filter(x => x !== bk); LS.del('rwp_book_'+bk.id); saveBooksLocal(); renderLibrary();
+      if(DB){ try{ const ref = libRef.collection('books').doc(bk.id); for(let i=0;i<(bk.chunks||1);i++) await ref.collection('chunks').doc(String(i).padStart(3,'0')).delete(); await ref.delete(); }catch(e){} }
+    });
+  });
+  $('#v-library').querySelectorAll('[data-sdel]').forEach(b => b.onclick = () => {
+    const st = stories.find(x => x.id === b.dataset.sdel);
+    confirmBox(`Delete "${st.title}"?`, () => {
+      stories = stories.filter(x => x !== st); saveStoriesLocal(); renderLibrary();
+      if(DB) libRef.collection('stories').doc(st.id).delete().catch(()=>{});
+    });
+  });
+}
+async function addBook(){
+  const text = $('#bText').value.trim();
+  if(!text){ toast('Paste some text first.'); return; }
+  const b = { id: 'b' + Date.now().toString(36), title: $('#bTitle').value.trim() || text.split(/\s+/).slice(0,4).join(' '), text, page:0, chars:text.length, added:Date.now() };
+  $('#bAdd').disabled = true; $('#bAdd').innerHTML = '<span class="spin"></span>';
+  if(DB){ try{ await putBook(b); }catch(e){ toast("Couldn't save to your account. Keeping it on this device."); LS.set('rwp_book_'+b.id, text); } }
+  else if(!LS.set('rwp_book_'+b.id, text)) toast('This book is too big to keep on this device. It will be here until you close the page.');
+  books.unshift(b); saveBooksLocal(); renderLibrary(); toast('Added "' + b.title + '"');
+}
+
+// ---------- make ----------
+const BEYOND_LEVELS = [
+  { id:'B1', name:'All sounds · longer stories', grade:'end of first grade: two-syllable words, simple dialogue, 4 to 6 short sentences per page' },
+  { id:'B2', name:'Early chapter book', grade:'second grade, like Frog and Toad or Mercy Watson: short chapters, mostly familiar words, a few new longer words' },
+  { id:'B3', name:'Chapter book', grade:'third grade, like Magic Tree House: richer vocabulary, paragraphs, a mystery or adventure' },
+  { id:'B4', name:'Harry Potter ready', grade:'fourth to fifth grade, close to the Harry Potter books: rich vocabulary, longer paragraphs, magic and adventure (an original story, not using Harry Potter characters or text)' }
+];
+function levelName(id){
+  if(!id) return '';
+  if(id.startsWith('B')){ const b = BEYOND_LEVELS.find(x => x.id === id); return b ? b.name : id; }
+  const lv = LD.LEVELS.find(l => l.id === id); return lv ? `Level ${lv.num}: ${lv.n.map(unitLabel).join(', ')}` : id;
+}
+let mk = { level:null, topic:'', len:'M', busy:false, msg:'' };
+function renderMake(){
+  if(!mk.level){ const nx = nextLevel(); mk.level = nx ? nx.id : 'B1'; }
+  let h = `<div class="card"><b>Make a new story with Claude</b>
+  <p class="muted" style="margin:4px 0 0">Claude writes a fresh story using only the sounds she has learned up to the level you pick, then the app checks every word.</p>
+  <label class="f" for="mkLevel">Sounds up to</label><select id="mkLevel">`;
+  for(const lv of LD.LEVELS) h += `<option value="${lv.id}" ${mk.level===lv.id?'selected':''}>Level ${lv.num}: ${esc(lv.n.map(unitLabel).join(', '))}${S.done[lv.id]?' ⭐':''}</option>`;
+  h += `<optgroup label="Beyond the ladder">`;
+  for(const b of BEYOND_LEVELS) h += `<option value="${b.id}" ${mk.level===b.id?'selected':''}>${esc(b.name)}</option>`;
+  h += `</optgroup></select>
+  <label class="f" for="mkTopic">What is it about?</label><input type="text" id="mkTopic" placeholder="a silly dog, a dragon, the beach..." value="${esc(mk.topic)}">
+  <div class="ideas">${['a silly dog','a little dragon','the beach','a trip to space','a lost hat','a pet frog','a big storm','Puck the duck'].map(x=>`<button data-idea="${x}">${x}</button>`).join('')}</div>
+  <label class="f">Length</label><div class="seg">${[['S','Short'],['M','Medium'],['L','Long']].map(([k,l])=>`<button data-len="${k}" class="${mk.len===k?'on':''}">${l}</button>`).join('')}</div>
+  <button class="btn full" id="mkGo" style="margin-top:16px" ${mk.busy || !SAMPLE ? 'disabled':''}>${mk.busy ? '<span class="spin"></span> Writing the story...' : '✨ Make my story'}</button>
+  ${mk.msg ? `<div class="note info">${esc(mk.msg)}</div>` : ''}
+  ${!SAMPLE ? `<div class="note info">The story maker works when this page is open in Claude and you're signed in. The 52 built-in stories and your books work everywhere.</div>` : ''}
+  </div>`;
+  if(stories.length){
+    h += `<div class="card"><b>Recent</b>`;
+    for(const s of stories.slice(0,5)) h += `<div class="item"><div class="grow"><b>${esc(s.title)}</b><span class="muted">${esc(levelName(s.level))}</span></div><button class="btn small" data-s="${s.id}">Read</button></div>`;
+    h += `</div>`;
+  }
+  $('#v-make').innerHTML = h;
+  $('#mkLevel').onchange = e => mk.level = e.target.value;
+  $('#mkTopic').oninput = e => mk.topic = e.target.value;
+  $('#v-make').querySelectorAll('[data-idea]').forEach(b => b.onclick = () => { mk.topic = b.dataset.idea; $('#mkTopic').value = mk.topic; });
+  $('#v-make').querySelectorAll('[data-len]').forEach(b => b.onclick = () => { mk.len = b.dataset.len; renderMake(); });
+  $('#v-make').querySelectorAll('[data-s]').forEach(b => b.onclick = () => openStory(b.dataset.s));
+  const g = $('#mkGo'); if(g) g.onclick = makeStory;
+}
+function unitDescribe(u){
+  const d = U[u]; const l = unitLabel(u);
+  if(u.endsWith('_e') && u.length===3) return `${l} (magic e, as in ${d.ex})`;
+  if(u === 'e_silent') return 'a silent final e (as in have)';
+  if(u === 'ed') return '-ed ending (as in jumped, landed)';
+  return `${l} (as in ${d.ex})`;
+}
+async function makeStory(){
+  if(!SAMPLE || mk.busy) return;
+  mk.busy = true; mk.msg = ''; renderMake();
+  const topic = mk.topic.trim() || 'a funny animal';
+  const isB = mk.level.startsWith('B');
+  const lenPages = { S: isB?4:5, M: isB?6:8, L: isB?10:12 }[mk.len];
+  let prompt, known, tricky, focus = [];
+  if(!isB){
+    const lv = LD.LEVELS.find(l => l.id === mk.level);
+    ({ known, tricky } = LD.knownAt(lv.num));
+    focus = lv.n;
+    prompt = `You write decodable phonics stories for a young child who is learning to read.
+
+Write an original story about: ${topic}.
+
+The child can ONLY read words built from these spelling patterns:
+${[...known].map(unitDescribe).join('; ')}.
+
+She also knows these heart words (sight words): ${[...tricky].join(', ') || 'none'}.
+
+Every single word must be readable with those patterns or be a heart word. Do not use any other spelling patterns. For example, if "ee" is not listed, do not write "see". Names must also follow the patterns.
+
+Focus sound for this story: ${lv.n.map(unitDescribe).join(' and ')}. Use it in lots of words so she gets practice spotting it.
+
+Style: entertaining and warm, with a little problem and a funny or happy ending. ${lv.num < 12 ? 'Very short sentences of 2 to 5 words, one or two sentences per page.' : lv.num < 30 ? 'Short sentences, one to three per page.' : 'Sentences up to about 10 words, two to four per page.'} Mostly one-syllable words. Repetition is good. Nothing scary.
+
+Write exactly ${lenPages} pages. Before answering, use the check_words tool on all the words you plan to use and replace any word it rejects.
+
+Reply with only JSON in this shape: {"title": "...", "pages": ["page one text", "page two text"]}`;
+  } else {
+    const b = BEYOND_LEVELS.find(x => x.id === mk.level);
+    prompt = `Write an original children's story about: ${topic}.
+Reading level: ${b.grade}.
+It should be entertaining, with characters she will want to read more about, and a satisfying ending. Nothing scary beyond gentle adventure peril.
+Write exactly ${lenPages} pages. Each page is a short passage that fits on a phone screen (${mk.level==='B1'?'25 to 45':mk.level==='B2'?'40 to 70':'60 to 110'} words). Use paragraphs separated by blank lines where it helps.
+Reply with only JSON in this shape: {"title": "...", "pages": ["page one text", "page two text"]}`;
+  }
+  const checkTool = known ? [{
+    name:'check_words',
+    description:'Checks whether words are readable for this child. Pass the words you plan to use. Returns the ones that use sounds she has not learned yet.',
+    inputSchema:{ type:'object', properties:{ words:{ type:'array', items:{ type:'string' } } }, required:['words'] },
+    execute: (inp) => {
+      const bad = [];
+      for(const w of (inp.words||[])) for(const tk of P.tokenize(String(w))) if(tk.w && !P.checkWord(tk.text, known, tricky).ok) bad.push(tk.text);
+      return { rejected: [...new Set(bad)].slice(0,80), note: bad.length ? 'Replace these words.' : 'All words are fine.' };
+    }
+  }] : undefined;
+  try{
+    let out = await SAMPLE.json(prompt, { tools: checkTool, modelTier: 'default' });
+    let story = normStory(out);
+    if(!story) throw { message:'The story came back in an odd shape. Try again.' };
+    if(known){
+      let bad = findBad(story, known, tricky);
+      if(bad.length){
+        const fix = `${prompt}\n\nHere is a draft:\n${JSON.stringify(story)}\n\nThese words use sounds she has not learned: ${bad.join(', ')}. Rewrite the story replacing every one of them. Reply with only the JSON.`;
+        try{ const s2 = normStory(await SAMPLE.json(fix, { tools: checkTool, modelTier: 'default' })); if(s2) story = s2; }catch(e){}
+        bad = findBad(story, known, tricky);
+        if(bad.length) mk.msg = `Heads up: ${bad.length} word${bad.length>1?'s use':' uses'} a sound she hasn't learned yet (${bad.slice(0,6).join(', ')}). Tap them to sound them out together.`;
+      }
+    }
+    const s = { id:'s'+Date.now().toString(36), title:story.title, pages:story.pages, level:mk.level, focus, topic, created:Date.now() };
+    stories.unshift(s); saveStoriesLocal();
+    if(DB) libRef.collection('stories').doc(s.id).set(s).catch(()=>{});
+    mk.busy = false; renderMake();
+    openStory(s.id);
+  }catch(e){
+    mk.busy = false;
+    mk.msg = e && e.code === 'rate_limited' ? 'Claude is busy right now. Wait a minute and try again.' : (e && e.code === 'not_granted' ? 'The story maker was turned off for this page.' : ((e && e.message) || 'Something went wrong. Try again.'));
+    if(e && e.code === 'not_granted') SAMPLE = null;
+    renderMake();
+  }
+}
+function normStory(o){
+  if(typeof o === 'string'){ try{ o = JSON.parse(o.slice(o.indexOf('{'), o.lastIndexOf('}')+1)); }catch(e){ return null; } }
+  if(!o || !Array.isArray(o.pages) || !o.pages.length) return null;
+  return { title: String(o.title || 'A New Story').slice(0,80), pages: o.pages.map(p => String(p)).filter(Boolean).slice(0,20) };
+}
+function findBad(story, known, tricky){
+  const bad = new Set();
+  for(const pg of story.pages.concat([story.title])) for(const tk of P.tokenize(pg)) if(tk.w && !P.checkWord(tk.text, known, tricky).ok) bad.add(tk.text);
+  return [...bad];
+}
+
+// ---------- settings ----------
+function renderSettings(){
+  const st = S.settings;
+  const sw = (k, lab, sub) => `<div class="row"><div class="lab">${lab}<small>${sub}</small></div><label class="sw"><input type="checkbox" data-k="${k}" ${st[k]?'checked':''}><span></span></label></div>`;
+  let h = `<div class="card"><b>Settings</b>
+  <label class="f" for="sName">Reader's name</label><input type="text" id="sName" value="${esc(st.name)}" placeholder="Her name">
+  ${sw('ipa','Show sound symbols','Dictionary symbols like /kæt/ above words and under each sound.')}
+  ${sw('example','Say an example word','Tapping a letter says its name and a word with the same sound: "A, like in apple".')}
+  ${sw('highlight','Highlight the new sound','Marks the new sound in each story so she can spot it.')}
+  <label class="f">Text size</label><div class="seg">${['S','M','L'].map(k=>`<button data-size="${k}" class="${st.size===k?'on':''}">${{S:'Small',M:'Medium',L:'Large'}[k]}</button>`).join('')}</div>
+  <label class="f" for="sRate">Voice speed</label><input type="range" id="sRate" min="0.5" max="1.2" step="0.05" value="${st.rate}" style="width:100%">
+  <label class="f" for="sVoice">Voice</label><select id="sVoice"><option value="">Automatic</option>${voices.map(v=>`<option value="${esc(v.voiceURI)}" ${st.voice===v.voiceURI?'selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
+  <button class="btn alt full" id="sTest" style="margin-top:10px">🔊 Test: "M, like in mop"</button>
+  </div>
+  <div class="card"><b>About the sounds</b><p class="muted">Tapping a letter or group says the letter name, then a simple word with the same sound. In "cat", the a says "A, like in apple". In "rake", the a and e say "A, with the silent E, like in cake". Enhanced voices from your phone's settings (on iPhone: Accessibility, Spoken Content, Voices) sound clearer.</p>
+  <p class="muted">Stars and settings are saved ${where==='account'?'to your Claude account.':'on this device.'}</p>
+  <button class="btn alt full" id="sReset">Reset stars</button>
+  <p class="muted" style="text-align:center;margin:12px 0 0">Version ${APP_VERSION}</p></div>`;
+  $('#v-settings').innerHTML = h;
+  $('#v-settings').querySelectorAll('[data-k]').forEach(i => i.onchange = () => { st[i.dataset.k] = i.checked; saveState(); });
+  $('#v-settings').querySelectorAll('[data-size]').forEach(b => b.onclick = () => { st.size = b.dataset.size; applySize(); saveState(); renderSettings(); });
+  $('#sName').onchange = e => { st.name = e.target.value.trim(); saveState(); };
+  $('#sRate').onchange = e => { st.rate = parseFloat(e.target.value); saveState(); };
+  $('#sVoice').onchange = e => { st.voice = e.target.value; saveState(); };
+  $('#sTest').onclick = async () => { stopSpeak(); await wait(40); speak('M. Like in mop.'); };
+  $('#sReset').onclick = () => confirmBox('Clear all the stars and start the ladder over?', () => { S.done = {}; saveState(); toast('Stars cleared.'); });
+}
+
+// ---------- reader ----------
+let R = null;
+function openLevel(id){
+  const lv = LD.LEVELS.find(l => l.id === id);
+  const { known, tricky } = LD.knownAt(lv.num);
+  R = { kind:'level', id, title:lv.title, pages:lv.pages, page:-1, focus:new Set(lv.n), tricky, known, lv };
+  showReader();
+}
+function openStory(id){
+  const s = stories.find(x => x.id === id); if(!s) return;
+  const isB = !s.level || s.level.startsWith('B');
+  let tricky = new Set(), known = null;
+  if(!isB){ const lv = LD.LEVELS.find(l => l.id === s.level); ({ known, tricky } = LD.knownAt(lv.num)); }
+  R = { kind:'story', id, title:s.title, pages:s.pages, page: isB ? 0 : -1, focus:new Set(s.focus||[]), tricky, known, long:isB, lv: isB ? null : LD.LEVELS.find(l => l.id === s.level) };
+  showReader();
+}
+function openShared(id){
+  const s = shared.find(x => x.id === id); if(!s) return;
+  const { known, tricky } = LD.knownAt(Math.max(1, herLevel()));
+  const long = s.pages.some(p => p.split(/\s+/).length > 30);
+  R = { kind:'shared', id:s.name, title:s.title, pages:s.pages, page:0, focus:new Set(), tricky, known, long };
+  showReader();
+}
+async function openBook(id){
+  const b = books.find(x => x.id === id); if(!b) return;
+  toast('Opening...');
+  const text = await loadBookText(b);
+  if(!text){ toast("Couldn't load this book."); return; }
+  const per = { S:110, M:75, L:50 }[S.settings.size] || 75;
+  const pages = paginate(text, per);
+  R = { kind:'book', id, title:b.title, pages, page:Math.min(b.page||0, pages.length-1), focus:new Set(), tricky:new Set(), long:true, book:b };
+  showReader();
+}
+function paginate(text, max){
+  const paras = text.replace(/\r/g,'').split(/\n\s*\n/).map(p => p.replace(/\s*\n\s*/g,' ').trim()).filter(Boolean);
+  const out = []; let cur = [], cnt = 0;
+  const flush = () => { if(cur.length){ out.push(cur.join('\n\n')); cur = []; cnt = 0; } };
+  for(const p of paras){
+    const n = p.split(/\s+/).length;
+    if(n > max){
+      flush();
+      const sents = p.match(/[^.!?]+[.!?]+["”’']?\s*|[^.!?]+$/g) || [p];
+      let buf = '', bc = 0;
+      for(const s of sents){ const sc = s.split(/\s+/).length; if(bc + sc > max && buf){ out.push(buf.trim()); buf = ''; bc = 0; } buf += s; bc += sc; }
+      if(buf.trim()){ cur = [buf.trim()]; cnt = bc; }
+      continue;
+    }
+    if(cnt + n > max) flush();
+    cur.push(p); cnt += n;
+  }
+  flush();
+  return out.length ? out : [text.slice(0, 2000)];
+}
+function wordHtml(text){
+  const p = P.parseWord(text);
+  const fixed = aiFix.get(p.lw);
+  const chips = fixed || p.chips;
+  let inner;
+  if(S.settings.highlight && R.focus.size && !fixed){
+    inner = chips.map(c => R.focus.has(c.u) ? `<span class="hl">${esc(c.t)}</span>` : esc(c.t)).join('');
+  } else inner = esc(text);
+  const heart = R.kind !== 'book' && p.heart && R.tricky.has(p.lw) ? '<sup>♥</sup>' : '';
+  const span = `<span class="w" data-w="${esc(text)}">${inner}${heart}</span>`;
+  if(S.settings.ipa) return `<ruby>${span}<rt>/${esc(chips.map(c=>c.ipa).join(''))}/</rt></ruby>`;
+  return span;
+}
+function pageHtml(t){
+  return t.split(/\n\n/).map(par => '<p style="margin:0 0 .6em">' + P.tokenize(par).map(tk => tk.w ? wordHtml(tk.text) : esc(tk.text)).join('') + '</p>').join('');
+}
+function showReader(){
+  stopSpeak();
+  const el = $('#reader'); el.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  drawPage();
+}
+function closeReader(){ stopSpeak(); $('#reader').classList.add('hidden'); document.body.style.overflow = ''; R = null; render(); }
+function drawPage(){
+  const el = $('#reader');
+  const total = R.pages.length;
+  let body, foot;
+  if(R.page === -1){
+    const words = [];
+    if(R.lv){
+      for(const pg of R.pages) for(const tk of P.tokenize(pg)) if(tk.w){
+        const p = P.parseWord(tk.text);
+        if(p.chips.some(c => R.focus.has(c.u)) && !words.some(w => w.toLowerCase() === tk.text.toLowerCase()) && words.length < 8) words.push(tk.text);
+      }
+    }
+    const hearts = R.lv ? R.lv.tricky : [];
+    body = `<div class="intro"><div class="muted" style="font-size:18px">New sound${R.focus.size>1?'s':''}</div>
+      <div class="snds">${[...R.focus].map(u => `<button class="sndbtn" data-u="${u}">${esc(unitShow(u))}${S.settings.ipa?`<small>/${esc(U[u].ipa)}/</small>`:''}<small>${esc(U[u].ex)}</small></button>`).join('')}</div>
+      <p style="font-size:20px">Tap it to hear it in a word. Then find it in the story!</p>
+      ${words.length ? `<div class="wordlist">${words.map(w=>`<button data-w="${esc(w)}">${esc(w)}</button>`).join('')}</div>`:''}
+      ${hearts.length ? `<p class="muted" style="margin-top:18px">New heart words ♥ (learn by heart):</p><div class="wordlist">${hearts.map(w=>`<button data-w="${esc(w)}">${esc(w)}</button>`).join('')}</div>` : ''}
+      </div>`;
+    foot = `<button class="btn" id="rNext">Start reading ▶</button>`;
+  } else {
+    body = `<div class="text ${R.long?'long':''}">${pageHtml(R.pages[R.page])}</div>`;
+    const last = R.page === total - 1;
+    foot = `<button class="btn alt" id="rPrev" ${R.page===0 && R.kind!=='level' && !(R.kind==='story'&&R.lv)?'disabled':''} style="flex:.6">◀</button>
+      <button class="btn" id="rNext">${last ? (R.kind==='book' ? 'The end' : 'I read it! ⭐') : 'Next ▶'}</button>`;
+  }
+  const dots = total <= 24 ? `<div class="dots">${R.pages.map((_,i)=>`<i class="${i===R.page?'on':''}"></i>`).join('')}</div>` : `<div class="pgnum">Page ${R.page+1} of ${total}</div>`;
+  el.innerHTML = `<div class="rbar"><button class="iconbtn" id="rClose" aria-label="Close">✕</button><div class="t">${esc(R.title)}</div>
+    ${R.page>=0?'<button class="iconbtn" id="rRead" aria-label="Read this page aloud">🔊</button>':''}
+    <button class="iconbtn" id="rIpa" aria-label="Sound symbols" style="font-size:15px;font-weight:700;${S.settings.ipa?'background:#FFE9B8':''}">/ə/</button></div>
+    <div class="page" id="rPage">${body}</div>${R.page>=0?dots:''}<div class="rfoot">${foot}</div>`;
+  $('#rClose').onclick = closeReader;
+  $('#rIpa').onclick = () => { S.settings.ipa = !S.settings.ipa; saveState(); drawPage(); };
+  const rr = $('#rRead'); if(rr) rr.onclick = () => { stopSpeak(); setTimeout(()=>speak(R.pages[R.page].replace(/\n+/g,' ')), 40); };
+  const pv = $('#rPrev'); if(pv) pv.onclick = () => { if(R.page > 0) R.page--; else if(R.lv) R.page = -1; drawPage(); savePos(); };
+  $('#rNext').onclick = () => {
+    if(R.page < total - 1){ R.page++; drawPage(); savePos(); $('#rPage').scrollTop = 0; }
+    else finish();
+  };
+  el.querySelectorAll('[data-w]').forEach(w => w.onclick = () => openZoom(w.dataset.w));
+  el.querySelectorAll('.sndbtn').forEach(b => b.onclick = async () => {
+    const u = b.dataset.u, d = U[u]; stopSpeak(); await wait(40);
+    speak(unitName(u) + (u.endsWith('_e') && u.length===3 ? ' With the silent E.' : '') + ' Like in ' + d.ex + '.');
+  });
+  // swipe
+  const pg = $('#rPage'); let sx = null;
+  pg.ontouchstart = e => { sx = e.touches[0].clientX; };
+  pg.ontouchend = e => { if(sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null;
+    if(Math.abs(dx) > 70){ if(dx < 0 && R.page < total - 1){ R.page++; drawPage(); savePos(); } else if(dx > 0 && R.page > 0){ R.page--; drawPage(); savePos(); } } };
+}
+function savePos(){ if(R && R.kind === 'book'){ R.book.page = Math.max(0, R.page); saveBookPage(R.book); } }
+function finish(){
+  if(R.kind === 'book'){ closeReader(); return; }
+  const key = R.kind === 'level' ? R.id : (R.kind === 'shared' ? 'G-' + R.id : 'S-' + R.id);
+  S.done[key] = Date.now(); saveState();
+  stopSpeak(); setTimeout(()=>speak('Great reading' + (S.settings.name ? ', ' + S.settings.name : '') + '!'), 60);
+  const o = $('#overlay'); o.className = 'celebrate';
+  const nx = R.kind === 'level' ? LD.LEVELS[R.lv.num] : null;
+  o.innerHTML = `<div class="bigstar">⭐</div><div style="font-size:30px;font-weight:700;margin:8px 0">You read it!</div>
+    <p class="muted" style="font-size:18px">${esc(R.title)}</p>
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;margin-top:16px">
+    ${nx ? `<button class="btn" id="cNext">Next: ${esc(nx.title)} (${esc(nx.n.map(unitLabel).join(', '))}) ▶</button>` : ''}
+    <button class="btn alt" id="cAgain">Read it again</button><button class="btn alt" id="cHome">Done</button></div>`;
+  const shut = () => { o.className = 'hidden'; o.innerHTML = ''; };
+  if(nx) $('#cNext').onclick = () => { shut(); openLevel(nx.id); };
+  $('#cAgain').onclick = () => { shut(); R.page = R.lv ? -1 : 0; drawPage(); };
+  $('#cHome').onclick = () => { shut(); closeReader(); };
+}
+
+// ---------- word zoom ----------
+const aiFix = new Map();
+function openZoom(text){
+  stopSpeak();
+  const base = P.parseWord(text);
+  const fixed = aiFix.get(base.lw);
+  const word = fixed ? Object.assign({}, base, { chips: fixed, heart: fixed.some(c=>c.tricky) }) : base;
+  const sh = $('#sheet'); sh.classList.remove('hidden');
+  const showIpa = S.settings.ipa;
+  const inLadder = R && R.kind !== 'book';
+  const heartTaught = R && R.tricky && R.tricky.has(base.lw);
+  const unknownParts = R && R.known && !heartTaught ? word.chips.filter(c => !c.punct && (!c.u || !R.known.has(c.u))) : [];
+  sh.innerHTML = `<div class="sheet" role="dialog" aria-label="${esc(text)}">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="muted">Tap a letter or group</span><button class="iconbtn" id="zClose" aria-label="Close">✕</button></div>
+    <div class="chips" style="--cs:${word.chips.length>7?36:word.chips.length>5?46:word.chips.length>4?54:64}px">${word.chips.map((c,i)=>`<button class="chip ${chipClass(c)}" data-i="${i}">
+      ${c.tricky?'<span class="hrt">♥</span>':''}<span class="l">${esc(c.t)}</span>${c.t.replace(/[^A-Za-z]/g,'').length>1?'<span class="grp"></span>':''}
+      ${showIpa ? `<span class="ip">${c.ipa?'/'+esc(c.ipa)+'/':'—'}</span>` : ''}${c.silent?'<span class="tag">silent</span>':''}</button>`).join('')}</div>
+    ${showIpa ? `<div class="zipa">/${esc(word.chips.map(c=>c.ipa).join(''))}/</div>` : ''}
+    <div class="zrow"><button class="btn" id="zOut">🔤 Spell it</button><button class="btn alt" id="zSay">🔊 Say it</button></div>
+    ${word.heart ? `<div class="note">♥ Heart word: the pink part doesn't follow the usual rules. Learn that bit by heart.</div>` : ''}
+    ${word.chips.some(c=>c.magic) ? `<div class="note info">Magic e: the e at the end is silent and makes the vowel say its name.</div>` : ''}
+    ${inLadder && unknownParts.length && !word.heart ? `<div class="note info">This word has a sound she hasn't learned yet. Read it together.</div>` : ''}
+    ${SAMPLE && !fixed && (R && (R.kind === 'book' || R.long)) ? `<button class="linkbtn" id="zAsk">Looks wrong? Ask Claude to split this word</button>` : ''}
+    ${fixed ? `<p class="muted" style="text-align:center">Split by Claude</p>` : ''}
+  </div>`;
+  const close = () => { stopSpeak(); sh.classList.add('hidden'); sh.innerHTML = ''; };
+  sh.onclick = e => { if(e.target === sh) close(); };
+  $('#zClose').onclick = close;
+  const btns = [...sh.querySelectorAll('.chip')];
+  btns.forEach(b => b.onclick = () => { btns.forEach(x=>x.classList.remove('lit')); b.classList.add('lit'); speakChip(word.chips[+b.dataset.i], word).then(()=>b.classList.remove('lit')); });
+  $('#zSay').onclick = async () => { stopSpeak(); await wait(40); speak(text.toLowerCase()==='i'?'I':text); };
+  $('#zOut').onclick = () => soundOut(word, i => btns.forEach((b,j) => b.classList.toggle('lit', i === -1 ? true : j === i))).then(()=>btns.forEach(b=>b.classList.remove('lit')));
+  const ask = $('#zAsk');
+  if(ask) ask.onclick = async () => {
+    ask.innerHTML = '<span class="spin"></span>'; ask.disabled = true;
+    try{
+      const res = await SAMPLE.json(`Split the English word "${base.lw}" into phonics sound chunks (graphemes) for a child learning to read, in American English. Group letters that make one sound together (like "sh", "igh", "ea", "ck"), and treat magic e as a silent "e" chunk. Give each chunk's sound in IPA (use symbols like æ ɛ ɪ ɑ ʌ ə ʊ eɪ i aɪ oʊ u ju aʊ ɔɪ ɔ ɝ ɚ ɑr ɔr ʃ tʃ θ ð ŋ dʒ). Use "" for silent letters. Mark tricky true for a chunk that breaks the usual rules. The letters must join to exactly "${base.lw}". Reply with only JSON: {"parts":[{"letters":"...","ipa":"...","tricky":false}]}`, { modelTier:'quick' });
+      const parts = res && res.parts;
+      if(!Array.isArray(parts) || parts.map(p => p.letters).join('').toLowerCase() !== base.lw) throw 0;
+      // re-apply original casing
+      let k = 0; const orig = text.replace(/[’']/g,'');
+      const chips = parts.map(p => { const t = orig.slice(k, k + p.letters.length); k += p.letters.length; const lt = p.letters.toLowerCase();
+        return { t, u: U[lt] ? lt : null, ipa: p.ipa || '', silent: !p.ipa, tricky: !!p.tricky }; });
+      aiFix.set(base.lw, chips); openZoom(text);
+    }catch(e){ ask.textContent = "Couldn't split it. Try again."; ask.disabled = false; }
+  };
+}
+
+render();
+setTimeout(() => { initCloud(); initCaps(); loadShared(); }, 0);
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') loadShared(); });
+if('serviceWorker' in navigator && location.protocol === 'https:' && location.hostname.endsWith('github.io')){
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.update();
+    reg.addEventListener('updatefound', () => { const w = reg.installing; if(w) w.addEventListener('statechange', () => { if(w.state === 'activated' && navigator.serviceWorker.controller) toast('Updated to the newest version.'); }); });
+  }).catch(()=>{});
+}
+})();
+</script>
+</body>
+</html>
