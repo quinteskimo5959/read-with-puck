@@ -1,0 +1,42 @@
+McGuffey Primer, Lessons 1 to 3
+
+The Alphabet
+A B C D
+E F G H
+I J K L
+M N O P
+Q R S T
+U V W X
+Y Z
+a b c d
+e f g h
+i j k l
+m n o p
+q r s t
+u v w x
+y z
+
+Lesson 1
+a   and   cat   rat
+a   e   d   n   r   t
+a rat   a cat
+A cat   A rat
+A cat and a rat.
+A rat and a cat.
+
+Lesson 2
+at   the   ran   has
+Ann   h   th   s
+The cat   the rat
+The cat has a rat.
+The rat ran at Ann.
+Ann has a cat.
+The cat ran at the rat.
+
+Lesson 3
+Nat   hat   fan   can   f
+a fan   a hat
+Ann and Nat.
+Ann has a fan.
+Nat has a hat.
+Ann can fan Nat.
