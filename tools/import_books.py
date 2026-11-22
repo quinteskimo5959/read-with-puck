@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,27 +24,53 @@ BOOKS = [
 ]
 
 
+def mirror_dir(book_id):
+    s = str(book_id)
+    return "/".join(s[:-1]) + "/" + s if len(s) > 1 else "0/" + s
+
+
 def fetch(book_id):
-    urls = [
+    d = mirror_dir(book_id)
+    names = [f"{book_id}-0.txt", f"{book_id}.txt", f"{book_id}-8.txt"]
+    bases = [
+        "https://mirror.csclub.uwaterloo.ca/gutenberg/",
+        "https://gutenberg.readingroo.ms/",
+        "http://gutenberg.pglaf.org/",
+        "http://aleph.gutenberg.org/",
+        "https://www.gutenberg.org/files/" + str(book_id) + "/",
+    ]
+    urls = []
+    for b in bases:
+        for n in names:
+            urls.append(b + n if b.endswith(f"/{book_id}/") else b + d + "/" + n)
+    urls += [
         f"https://www.gutenberg.org/cache/epub/{book_id}/pg{book_id}.txt",
-        f"https://www.gutenberg.org/ebooks/{book_id}.txt.utf-8",
-        f"https://www.gutenberg.org/files/{book_id}/{book_id}-0.txt",
-        f"https://www.gutenberg.org/files/{book_id}/{book_id}.txt",
-        f"https://aleph.gutenberg.org/cache/epub/{book_id}/pg{book_id}.txt",
+        f"http://aleph.gutenberg.org/cache/epub/{book_id}/pg{book_id}.txt",
     ]
     for url in urls:
-        for attempt in range(3):
+        for attempt in range(2):
             try:
-                req = urllib.request.Request(url, headers={"User-Agent": "read-with-puck-importer/1.0"})
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (read-with-puck importer)"})
                 with urllib.request.urlopen(req, timeout=60) as r:
                     data = r.read()
-                text = data.decode("utf-8-sig", errors="replace")
+                for enc in ("utf-8-sig", "latin-1"):
+                    try:
+                        text = data.decode(enc)
+                        break
+                    except UnicodeDecodeError:
+                        continue
                 if "START OF" in text:
                     print(f"  got {book_id} from {url}")
                     return text
+                break
+            except urllib.error.HTTPError as e:
+                print(f"  {url}: {e}")
+                if e.code == 404:
+                    break
+                time.sleep(2)
             except Exception as e:
                 print(f"  {url}: {e}")
-                time.sleep(2 + attempt * 3)
+                time.sleep(2)
     raise SystemExit(f"Could not download book {book_id}")
 
 
