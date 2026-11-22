@@ -589,7 +589,7 @@ textarea{min-height:140px;resize:vertical}
 <script>
 (function(){
 const P = window.Phonics, LD = window.Ladder, U = P.UNITS;
-const APP_VERSION = '2026-11-22b';
+const APP_VERSION = '2026-11-22c';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DUCK = '<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="34" cy="42" rx="22" ry="15" fill="#FFD23F"/><circle cx="24" cy="24" r="13" fill="#FFD23F"/><path d="M6 25 L15 21 L15 29 Z" fill="#F2803B"/><circle cx="21" cy="21" r="2.4" fill="#2A2733"/><path d="M36 38 q10 -8 18 2" stroke="#E8B523" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
@@ -1430,9 +1430,10 @@ render();
 setTimeout(() => { initCloud(); initCaps(); loadShared(); }, 0);
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') loadShared(); });
 if('serviceWorker' in navigator && location.protocol === 'https:' && location.hostname.endsWith('github.io')){
+  const hadSW = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('sw.js').then(reg => {
     reg.update();
-    reg.addEventListener('updatefound', () => { const w = reg.installing; if(w) w.addEventListener('statechange', () => { if(w.state === 'activated' && navigator.serviceWorker.controller) toast('Updated to the newest version.'); }); });
+    reg.addEventListener('updatefound', () => { const w = reg.installing; if(w) w.addEventListener('statechange', () => { if(w.state === 'activated' && hadSW) toast('Updated to the newest version.'); }); });
   }).catch(()=>{});
 }
 })();
