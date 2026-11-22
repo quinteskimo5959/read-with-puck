@@ -589,7 +589,7 @@ textarea{min-height:140px;resize:vertical}
 <script>
 (function(){
 const P = window.Phonics, LD = window.Ladder, U = P.UNITS;
-const APP_VERSION = '2026-11-22d';
+const APP_VERSION = '2026-11-22e';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DUCK = '<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="34" cy="42" rx="22" ry="15" fill="#FFD23F"/><circle cx="24" cy="24" r="13" fill="#FFD23F"/><path d="M6 25 L15 21 L15 29 Z" fill="#F2803B"/><circle cx="21" cy="21" r="2.4" fill="#2A2733"/><path d="M36 38 q10 -8 18 2" stroke="#E8B523" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
@@ -934,7 +934,7 @@ async function loadShared(){
       const old = shared.find(s => s.name === n); if(old) out.push(old);
     }
   }
-  out.sort((a,b) => a.title.localeCompare(b.title));
+  out.sort((a,b) => a.title.localeCompare(b.title, undefined, { numeric:true, sensitivity:'base' }));
   const changed = JSON.stringify(out) !== JSON.stringify(shared);
   shared = out; LS.set('rwp_shared', shared);
   if(changed && (current === 'library' || current === 'stories')) render();
